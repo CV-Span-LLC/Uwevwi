@@ -18,6 +18,12 @@ export const NAV: NavItem[] = [
   { label: 'CONTACT', footerLabel: 'Contact', href: '/contact', match: '/contact' },
 ];
 
+const LEGAL_LINKS: { label: string; href: Href }[] = [
+  { label: 'Privacy Policy', href: '/privacy-policy' },
+  { label: 'Terms of Use', href: '/terms-of-use' },
+  { label: 'Cookies', href: '/cookies-policy' },
+];
+
 const LOGO_MARK = require('../../assets/figma/logo-mark.svg');
 const LOGO_TEXT = require('../../assets/figma/logo-text.svg');
 const LOGO_MARK_LG = require('../../assets/figma/logo-mark-lg.svg');
@@ -181,11 +187,9 @@ function Footer() {
           <Txt variant="small" color={colors.textSecondary}>
             © Uwevwi 2025. All rights reserved.
           </Txt>
-          <View style={{ flexDirection: 'row', gap: 14 }}>
-            {['Privacy Policy', 'Terms of Use', 'Cookies'].map((label) => (
-              <Txt key={label} variant="small" color={colors.textSecondary}>
-                {label}
-              </Txt>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14 }}>
+            {LEGAL_LINKS.map((item) => (
+              <FooterLink key={item.label} label={item.label} href={item.href} />
             ))}
           </View>
         </View>

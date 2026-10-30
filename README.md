@@ -10,6 +10,6 @@ npm run ios      # or: npm run android
 ```
 
 Routes (`src/app`): `/` Home, `/about`, `/advisory`, `/stewardship`, `/studios`,
-`/studios/art-for-hope-biennial`, `/research`, `/research/[slug]`, `/contact`.
+`/studios/art-for-hope-biennial`, `/research`, `/research/[slug]`, `/contact`, `/privacy-policy`, `/terms-of-use`, `/cookies-policy`.
 
 Content for research and journal pieces lives in `src/data/`. Theme tokens are in `src/theme`.

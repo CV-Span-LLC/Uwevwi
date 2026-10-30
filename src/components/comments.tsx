@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { Link } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
@@ -239,7 +240,20 @@ export function Comments() {
             <Field icon={ICON_LETTER} value={email} onChangeText={setEmail} placeholder="Email address" keyboardType="email-address" height={60} error={submitted && !emailOk} />
           </View>
           <Txt variant="caption" color={colors.textSecondary}>
-            {submitted && !valid ? 'Please add a comment, your name and a valid email address.' : 'Your email will not be displayed publicly.'}
+            {submitted && !valid ? 'Please add a comment, your name and a valid email address.' : 'Your email will not be displayed publicly. '}
+            {submitted && !valid ? null : (
+              <>
+                See our{' '}
+                <Link href="/privacy-policy" style={{ color: colors.accent, textDecorationLine: 'underline' }}>
+                  Privacy Policy
+                </Link>{' '}
+                and{' '}
+                <Link href="/terms-of-use" style={{ color: colors.accent, textDecorationLine: 'underline' }}>
+                  Terms of Use
+                </Link>
+                .
+              </>
+            )}
           </Txt>
         </View>
         <View style={{ alignItems: 'flex-end' }}>

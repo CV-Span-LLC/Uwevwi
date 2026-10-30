@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Linking, Pressable, TextInput, View } from 'react-native';
 
@@ -286,6 +287,13 @@ function EnquiryForm() {
             </Txt>
           ) : null}
           <PrimaryButton label="Send Enquiry" onPress={send} />
+          <Txt variant="small" color={colors.textSecondary}>
+            We use your details only to reply to your enquiry. See our{' '}
+            <Link href="/privacy-policy" style={{ color: colors.accent, textDecorationLine: 'underline' }}>
+              Privacy Policy
+            </Link>
+            .
+          </Txt>
         </>
       )}
       <Pressable accessibilityRole="link" onPress={() => Linking.openURL(`mailto:${CONTACT_EMAIL}`)} style={{ alignSelf: 'flex-start' }}>
