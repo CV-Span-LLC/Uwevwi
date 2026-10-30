@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { PageHero, SectionTitle } from '@/components/blocks';
 import { SiteLayout } from '@/components/site-layout';
 import { Eyebrow, Photo, Section, Txt, useBreakpoint } from '@/components/ui';
+import { useSiteImage } from '@/lib/site-images';
 import { colors, fonts, layout } from '@/theme';
 
 const HERO = require('../../assets/figma/about-hero.jpg');
@@ -219,6 +220,7 @@ function OurPrinciples() {
 
 function Founder() {
   const { isDesktop, isMobile } = useBreakpoint();
+  const founderImage = useSiteImage('about.founder', FOUNDER);
   return (
     <View style={{ backgroundColor: colors.accent }}>
       <View
@@ -234,7 +236,7 @@ function Founder() {
         }}
       >
         <View style={{ width: isDesktop ? 544 : '100%', height: isDesktop ? 656 : isMobile ? 420 : 560 }}>
-          <Photo source={FOUNDER} position="top" />
+          <Photo source={founderImage} position="top" />
         </View>
         <View style={{ flex: 1, gap: 34, paddingHorizontal: isDesktop ? 0 : isMobile ? 20 : 48 }}>
           <View style={{ gap: 24 }}>
@@ -280,6 +282,7 @@ function Founder() {
 }
 
 export default function About() {
+  const heroImage = useSiteImage('about.hero', HERO);
   return (
     <SiteLayout>
       <PageHero
@@ -292,7 +295,7 @@ export default function About() {
           'Uwevwi was established to help close that gap.',
           'We work at the intersection of cultural strategy, research and advisory, helping clients build the structures that allow cultural assets to endure.',
         ]}
-        image={HERO}
+        image={heroImage}
       />
       <OurThinking />
       <Ecosystem />

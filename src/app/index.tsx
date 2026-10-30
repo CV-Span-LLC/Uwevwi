@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { SiteLayout } from '@/components/site-layout';
 import { Eyebrow, Photo, PrimaryButton, SecondaryButton, Section, Txt, gutterFor, useBreakpoint } from '@/components/ui';
+import { useSiteImage } from '@/lib/site-images';
 import { colors, layout } from '@/theme';
 
 const HERO = require('../../assets/figma/home-hero.jpg');
@@ -55,6 +56,7 @@ const AUDIENCES = [
 function Hero() {
   const { isDesktop, isMobile, bp } = useBreakpoint();
   const gutter = gutterFor(bp);
+  const heroImage = useSiteImage('home.hero', HERO);
   return (
     <View
       style={{
@@ -95,7 +97,7 @@ function Hero() {
           height: isDesktop ? 800 : isMobile ? 340 : 520,
         }}
       >
-        <Photo source={HERO} />
+        <Photo source={heroImage} />
       </View>
     </View>
   );
@@ -358,6 +360,7 @@ function ResearchStrip() {
 
 export default function Home() {
   const { isMobile } = useBreakpoint();
+  const bottomImage = useSiteImage('home.bottom', FULL_WIDTH_BOTTOM);
   return (
     <SiteLayout>
       <Hero />
@@ -368,7 +371,7 @@ export default function Home() {
       <AdvisoryQuestions />
       <WhoWeWorkWith />
       <View style={{ height: isMobile ? 240 : 436 }}>
-        <Photo source={FULL_WIDTH_BOTTOM} />
+        <Photo source={bottomImage} />
       </View>
       <ResearchStrip />
     </SiteLayout>

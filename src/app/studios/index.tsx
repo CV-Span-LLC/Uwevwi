@@ -4,10 +4,12 @@ import { View } from 'react-native';
 import { PageHero } from '@/components/blocks';
 import { SiteLayout } from '@/components/site-layout';
 import { Eyebrow, Photo, SecondaryButton, Section, Txt, gutterFor, useBreakpoint } from '@/components/ui';
+import { assetUrl, publicApi, type Exhibition } from '@/lib/api';
+import { useSiteImage } from '@/lib/site-images';
+import { useRemote } from '@/lib/use-remote';
 import { colors, layout } from '@/theme';
 
 const HERO = require('../../../assets/figma/studios-hero.jpg');
-const FLYER = require('../../../assets/figma/afh-flyer.jpg');
 const MOTION = require('../../../assets/figma/studios-motion.jpg');
 const LINE = require('../../../assets/figma/line-16.svg');
 const ARROW = require('../../../assets/figma/arrow-right-accent.svg');
@@ -27,30 +29,30 @@ const SELECTED_WORK = [
 
 function FeaturedExhibition() {
   const { isDesktop, isMobile } = useBreakpoint();
+  const { data } = useRemote(() => publicApi<Exhibition[]>('/exhibitions'));
+  const exhibition = data?.[0];
+  if (!exhibition) return null;
   return (
     <Section background={colors.background} paddingY={90} innerStyle={{ gap: 45 }}>
       <Eyebrow>FEATURED EXHIBITION</Eyebrow>
       <View style={{ flexDirection: isDesktop ? 'row' : 'column', justifyContent: 'space-between', gap: 40 }}>
         <View style={{ width: isDesktop ? 661 : '100%', height: isDesktop ? 816 : isMobile ? 440 : 640 }}>
-          <Photo source={FLYER} contentFit="contain" position="top" />
+          {exhibition.flyer ? <Photo source={{ uri: assetUrl(exhibition.flyer) as string }} contentFit="contain" position="top" /> : null}
         </View>
         <View style={{ width: isDesktop ? 448 : '100%', gap: 24 }}>
-          <Eyebrow>2026</Eyebrow>
-          <Txt variant="hero">Art for Hope Biennial</Txt>
-          <Txt variant="h4">Imagination as Access</Txt>
+          {exhibition.edition ? <Eyebrow>{exhibition.edition.split('·')[0].trim()}</Eyebrow> : null}
+          <Txt variant="hero">{exhibition.series || exhibition.title}</Txt>
+          {exhibition.series ? <Txt variant="h4">{exhibition.title}</Txt> : null}
           <View style={{ gap: 8 }}>
             <Txt variant="small" color={colors.textSecondary}>
-              18 - 31 July 2026
+              {exhibition.dateLabel}
             </Txt>
             <Txt variant="small" color={colors.textSecondary}>
-              Art Hotel, Victoria Island, Lagos
+              {exhibition.location}
             </Txt>
           </View>
-          <Txt>
-            The inaugural Art for Hope Biennial brings together emerging voices, established artists and communities in
-            a multi-disciplinary exhibition exploring imagination as a tool for access, inclusion and transformation.
-          </Txt>
-          <SecondaryButton label="View Exhibition" href="/studios/art-for-hope-biennial" />
+          <Txt>{exhibition.intro}</Txt>
+          <SecondaryButton label="View Exhibition" href={{ pathname: '/studios/[slug]', params: { slug: exhibition.slug } }} />
         </View>
       </View>
     </Section>
@@ -137,6 +139,7 @@ function SelectedWork() {
 
 function CultureInMotion() {
   const { isDesktop, isMobile, bp } = useBreakpoint();
+  const motionImage = useSiteImage('studio.motion', MOTION);
   const gutter = gutterFor(bp);
   return (
     <View style={{ backgroundColor: colors.background }}>
@@ -153,7 +156,7 @@ function CultureInMotion() {
         }}
       >
         <View style={{ width: isDesktop ? 663 : '100%', height: isDesktop ? 436 : isMobile ? 260 : 360 }}>
-          <Photo source={MOTION} />
+          <Photo source={motionImage} />
         </View>
         <View style={{ flex: isDesktop ? 1 : undefined, gap: 24, paddingHorizontal: isDesktop ? 0 : gutter }}>
           <Txt variant="large" color={colors.textSecondary}>
@@ -167,6 +170,7 @@ function CultureInMotion() {
 }
 
 export default function Studios() {
+  const heroImage = useSiteImage('studio.hero', HERO);
   return (
     <SiteLayout>
       <PageHero
@@ -174,7 +178,7 @@ export default function Studios() {
         title="Creating spaces for art, culture and encounter."
         titleWidth={405}
         paragraphs={['We develop exhibitions, public programmes and creative initiatives that connect people with African art and culture.']}
-        image={HERO}
+        image={heroImage}
       />
       <FeaturedExhibition />
       <WhatWeDo />

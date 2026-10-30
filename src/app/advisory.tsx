@@ -5,6 +5,7 @@ import { Pressable, View } from 'react-native';
 import { CtaBanner, PageHero } from '@/components/blocks';
 import { SiteLayout } from '@/components/site-layout';
 import { Eyebrow, Photo, SecondaryButton, Section, Txt, gutterFor, useBreakpoint } from '@/components/ui';
+import { useSiteImage } from '@/lib/site-images';
 import { colors, layout } from '@/theme';
 
 const HERO = require('../../assets/figma/advisory-hero.png');
@@ -169,6 +170,7 @@ function HowWeThink() {
 function ResearchBand() {
   const { isDesktop, isMobile, bp } = useBreakpoint();
   const gutter = gutterFor(bp);
+  const researchImage = useSiteImage('advisory.research', RESEARCH);
   return (
     <View
       style={{
@@ -183,7 +185,7 @@ function ResearchBand() {
       }}
     >
       <View style={{ width: isDesktop ? 663 : '100%', height: isDesktop ? 436 : isMobile ? 260 : 360 }}>
-        <Photo source={RESEARCH} />
+        <Photo source={researchImage} />
         <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(0,0,0,0.2)' }} />
       </View>
       <View style={{ flex: isDesktop ? undefined : 1, width: isDesktop ? 535 : '100%', gap: 24, paddingHorizontal: isDesktop ? 0 : gutter }}>
@@ -200,6 +202,7 @@ function ResearchBand() {
 }
 
 export default function Advisory() {
+  const heroImage = useSiteImage('advisory.hero', HERO);
   return (
     <SiteLayout>
       <PageHero
@@ -209,7 +212,7 @@ export default function Advisory() {
           'We provide independent, research-led advice to help organisations and collectors acquire, structure, govern and steward cultural assets for long-term value.',
         ]}
         cta={{ label: 'Request a Consultation', href: '/contact' }}
-        image={HERO}
+        image={heroImage}
       />
       <OurAdvisory />
       <QuoteBand />

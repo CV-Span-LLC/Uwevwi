@@ -1,15 +1,38 @@
 # Uwevwi
 
-Expo (React Native + web) build of the Uwevwi Studios site, from the Figma file
-`BRdf0X4G2mI6A61UJwEuCh` (page "Salau").
+The Uwevwi Studios website, its admin, and the API behind them, in one repo. Built from the Figma file
+`BRdf0X4G2mI6A61UJwEuCh`.
+
+| Part | Where | What |
+| --- | --- | --- |
+| Website | `src/app/` (everything outside `admin/`) | Expo Router app (web, iOS, Android) |
+| Admin | `src/app/admin/`, `src/admin/` | Sign-in, dashboard, research, exhibitions, website images, comments |
+| Backend | `server/` | Hono API on Node, SQLite (`node:sqlite`), image uploads |
+
+## Run it
 
 ```bash
 npm install
-npm run web      # http://localhost:8081
-npm run ios      # or: npm run android
+npm run dev        # API on :8787 and the web app on :8092
 ```
 
-Routes (`src/app`): `/` Home, `/about`, `/advisory`, `/stewardship`, `/studios`,
-`/studios/art-for-hope-biennial`, `/research`, `/research/[slug]`, `/contact`, `/privacy-policy`, `/terms-of-use`, `/cookies-policy`.
+Or run them separately: `npm run server` and `npm run web:dev`.
 
-Content for research and journal pieces lives in `src/data/`. Theme tokens are in `src/theme`.
+On first start the API creates the admin account and loads the existing research and exhibition content.
+Set `ADMIN_EMAIL` / `ADMIN_PASSWORD` (see `.env.example`) or read the generated password from the server log.
+Sign in at `/admin`. Password reset links are printed to the server console until an email provider is added.
+
+The data lives in `server/data/` and uploads in `server/uploads/`; both are git-ignored.
+
+## Checks
+
+```bash
+npm run typecheck  # app and server
+npm run lint
+```
+
+## Notes
+
+- Research content is stored as a small Markdown subset (headings, bold, italic, links, lists, quotes, tables).
+- Enquiries from the contact form are stored in the `enquiries` table; there is no inbox screen for them yet.
+- The API allows any origin and authenticates admins with a bearer token. Lock `cors` down before deploying.

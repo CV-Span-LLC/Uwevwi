@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { CtaBanner, PageHero } from '@/components/blocks';
 import { SiteLayout } from '@/components/site-layout';
 import { Eyebrow, Photo, Section, Txt, useBreakpoint } from '@/components/ui';
+import { useSiteImage } from '@/lib/site-images';
 import { colors } from '@/theme';
 
 const HERO = require('../../assets/figma/stewardship-hero.jpg');
@@ -170,6 +171,8 @@ function WhoWeSupport() {
 
 export default function Stewardship() {
   const { isMobile } = useBreakpoint();
+  const heroImage = useSiteImage('stewardship.hero', HERO);
+  const bottomImage = useSiteImage('stewardship.bottom', BEYOND);
   return (
     <SiteLayout>
       <PageHero
@@ -180,12 +183,12 @@ export default function Stewardship() {
           'We help institutions and private collectors safeguard what they own through documentation, governance, preservation and legacy planning. So cultural assets remain protected and relevant for generations to come.',
         ]}
         cta={{ label: "Let's talk", href: '/contact' }}
-        image={HERO}
+        image={heroImage}
       />
       <Pillars />
       <BeyondAcquisition />
       <View style={{ height: isMobile ? 240 : 436 }}>
-        <Photo source={BEYOND} position="center" />
+        <Photo source={bottomImage} position="center" />
       </View>
       <WhoWeSupport />
       <CtaBanner

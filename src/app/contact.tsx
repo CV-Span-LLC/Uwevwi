@@ -5,6 +5,7 @@ import { Linking, Pressable, TextInput, View } from 'react-native';
 
 import { SiteLayout } from '@/components/site-layout';
 import { Eyebrow, PrimaryButton, Section, Txt, gutterFor, useBreakpoint } from '@/components/ui';
+import { ApiError, publicApi } from '@/lib/api';
 import { colors, fonts, layout } from '@/theme';
 
 const PATTERN = require('../../assets/figma/contact-pattern.svg');
@@ -179,6 +180,8 @@ function EnquiryForm() {
   const [values, setValues] = useState<Values>(EMPTY);
   const [submitted, setSubmitted] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const set = (key: keyof Values) => (v: string) => setValues((prev) => ({ ...prev, [key]: v }));
   const emailOk = /^\S+@\S+\.\S+$/.test(values.email.trim());
@@ -190,22 +193,24 @@ function EnquiryForm() {
   };
   const valid = !errors.name && !errors.email && !errors.type && !errors.message;
 
-  const send = () => {
+  const send = async () => {
     setSubmitted(true);
-    if (!valid) return;
-    const lines = [
-      `Name: ${values.name.trim()}`,
-      `Email: ${values.email.trim()}`,
-      values.company.trim() ? `Organisation: ${values.company.trim()}` : null,
-      `Interested in: ${values.type}`,
-      '',
-      values.message.trim(),
-    ].filter((l): l is string => l !== null);
-    const url = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Enquiry: ${values.type}`)}&body=${encodeURIComponent(lines.join('\n'))}`;
-    Linking.openURL(url).catch(() => undefined);
-    setSent(true);
-    setValues(EMPTY);
-    setSubmitted(false);
+    setServerError(null);
+    if (!valid || sending) return;
+    setSending(true);
+    try {
+      await publicApi('/contact', {
+        method: 'POST',
+        body: { name: values.name, email: values.email, organisation: values.company, topic: values.type, message: values.message },
+      });
+      setSent(true);
+      setValues(EMPTY);
+      setSubmitted(false);
+    } catch (err) {
+      setServerError(err instanceof ApiError ? err.message : 'We could not send your enquiry. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   const row = { flexDirection: isMobile ? ('column' as const) : ('row' as const), gap: 24 };
@@ -222,7 +227,7 @@ function EnquiryForm() {
         <View style={{ backgroundColor: colors.background, borderRadius: 8, padding: 24, gap: 12 }}>
           <Txt variant="h4">Thank you.</Txt>
           <Txt color={colors.textSecondary}>
-            Your enquiry is ready in your email app. Send it to {CONTACT_EMAIL} and we will reply as soon as we can.
+            We have received your enquiry and will reply as soon as we can.
           </Txt>
           <PrimaryButton label="Write another enquiry" onPress={() => setSent(false)} />
         </View>
@@ -286,7 +291,12 @@ function EnquiryForm() {
               Please complete your name, a valid email address, the enquiry type and your message.
             </Txt>
           ) : null}
-          <PrimaryButton label="Send Enquiry" onPress={send} />
+          {serverError ? (
+            <Txt variant="small" color={colors.accent}>
+              {serverError}
+            </Txt>
+          ) : null}
+          <PrimaryButton label={sending ? 'Sending…' : 'Send Enquiry'} onPress={send} disabled={sending} />
           <Txt variant="small" color={colors.textSecondary}>
             We use your details only to reply to your enquiry. See our{' '}
             <Link href="/privacy-policy" style={{ color: colors.accent, textDecorationLine: 'underline' }}>
