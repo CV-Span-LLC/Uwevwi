@@ -114,6 +114,11 @@ export function run(sql: string, ...params: SQLInputValue[]) {
   return db.prepare(sql).run(...params);
 }
 
+// Older databases were created before enquiries could be marked as read.
+if (!all<{ name: string }>('PRAGMA table_info(enquiries)').some((c) => c.name === 'is_read')) {
+  db.exec('ALTER TABLE enquiries ADD COLUMN is_read INTEGER NOT NULL DEFAULT 0');
+}
+
 export const now = () => new Date().toISOString();
 
 export function logActivity(title: string, detail: string) {

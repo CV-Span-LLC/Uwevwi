@@ -472,7 +472,40 @@ admin.post('/upload', async (c) => {
 
 admin.get('/notifications', (c) => {
   const fresh = get<{ n: number }>('SELECT COUNT(*) AS n FROM comments WHERE is_read = 0 AND is_author = 0')?.n ?? 0;
-  return c.json({ fresh });
+  const enquiries = get<{ n: number }>('SELECT COUNT(*) AS n FROM enquiries WHERE is_read = 0')?.n ?? 0;
+  return c.json({ fresh, enquiries });
+});
+
+// enquiries
+
+type EnquiryRow = { id: number; name: string; email: string; organisation: string; topic: string; message: string; is_read: number; created_at: string };
+
+const enquiryShape = (e: EnquiryRow) => ({
+  id: e.id,
+  name: e.name,
+  email: e.email,
+  organisation: e.organisation,
+  topic: e.topic,
+  message: e.message,
+  read: e.is_read === 1,
+  createdAt: e.created_at,
+});
+
+admin.get('/enquiries', (c) => c.json(all<EnquiryRow>('SELECT * FROM enquiries ORDER BY created_at DESC').map(enquiryShape)));
+
+admin.put('/enquiries/:id/read', async (c) => {
+  const id = idParam(c.req.param('id'));
+  const read = (await body(c)).read === false ? 0 : 1;
+  if (!get('SELECT id FROM enquiries WHERE id = ?', id)) throw new HttpError(404, 'Not found.');
+  run('UPDATE enquiries SET is_read = ? WHERE id = ?', read, id);
+  return c.json({ ok: true });
+});
+
+admin.delete('/enquiries/:id', (c) => {
+  const id = idParam(c.req.param('id'));
+  if (!get('SELECT id FROM enquiries WHERE id = ?', id)) throw new HttpError(404, 'Not found.');
+  run('DELETE FROM enquiries WHERE id = ?', id);
+  return c.json({ ok: true });
 });
 
 // dashboard

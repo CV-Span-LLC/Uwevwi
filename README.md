@@ -6,7 +6,7 @@ The Uwevwi Studios website, its admin, and the API behind them, in one repo. Bui
 | Part | Where | What |
 | --- | --- | --- |
 | Website | `src/app/` (everything outside `admin/`) | Expo Router app (web, iOS, Android) |
-| Admin | `src/app/admin/`, `src/admin/` | Sign-in, dashboard, research, exhibitions, website images, comments |
+| Admin | `src/app/admin/`, `src/admin/` | Sign-in, dashboard, research, exhibitions, website images, comments, enquiries |
 | Backend | `server/` | Hono API on Node, SQLite (`node:sqlite`), image uploads |
 
 ## Run it
@@ -34,5 +34,5 @@ npm run lint
 ## Notes
 
 - Research content is stored as a small Markdown subset (headings, bold, italic, links, lists, quotes, tables).
-- Enquiries from the contact form are stored in the `enquiries` table; there is no inbox screen for them yet.
+- Enquiries from the contact form are stored in the `enquiries` table and read in the admin under Engagement, Enquiries.
 - The API allows any origin and authenticates admins with a bearer token. Lock `cors` down before deploying.

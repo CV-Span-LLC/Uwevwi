@@ -22,7 +22,13 @@ const GROUPS: { title?: string; items: NavItem[] }[] = [
     ],
   },
   { title: 'Website', items: [{ label: 'Website Images', href: '/admin/images', match: '/admin/images', icon: 'images' }] },
-  { title: 'Engagement', items: [{ label: 'Comments', href: '/admin/comments', match: '/admin/comments', icon: 'comments' }] },
+  {
+    title: 'Engagement',
+    items: [
+      { label: 'Comments', href: '/admin/comments', match: '/admin/comments', icon: 'comments' },
+      { label: 'Enquiries', href: '/admin/enquiries', match: '/admin/enquiries', icon: 'mail' },
+    ],
+  },
 ];
 
 const SIDEBAR = 240;
@@ -122,17 +128,18 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function Bell() {
-  const [fresh, setFresh] = useState(0);
+  const [counts, setCounts] = useState({ fresh: 0, enquiries: 0 });
   const pathname = usePathname();
+  const fresh = counts.fresh + counts.enquiries;
   useEffect(() => {
     let active = true;
-    adminApi<{ fresh: number }>('/notifications').then((r) => active && setFresh(r.fresh), () => undefined);
+    adminApi<{ fresh: number; enquiries: number }>('/notifications').then((r) => active && setCounts(r), () => undefined);
     return () => {
       active = false;
     };
   }, [pathname]);
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={fresh ? `${fresh} new comments` : 'Notifications'} onPress={() => router.push('/admin/comments')} style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: A.white, alignItems: 'center', justifyContent: 'center' }}>
+    <Pressable accessibilityRole="button" accessibilityLabel={fresh ? `${counts.fresh} new comments, ${counts.enquiries} new enquiries` : 'Notifications'} onPress={() => router.push(counts.fresh === 0 && counts.enquiries > 0 ? '/admin/enquiries' : '/admin/comments')} style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: A.white, alignItems: 'center', justifyContent: 'center' }}>
       <Icon name="bell" size={18} color={A.text} />
       {fresh > 0 ? <View style={{ position: 'absolute', top: 7, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: '#d92d3f' }} /> : null}
     </Pressable>
