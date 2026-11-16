@@ -1,11 +1,14 @@
 import { randomBytes } from 'node:crypto';
-import { writeFileSync } from 'node:fs';
+import { existsSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
+import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
 
 import {
   bearer,
@@ -28,10 +31,28 @@ type Env = { Variables: { admin: Admin } };
 
 const PORT = Number(process.env.PORT ?? 8787);
 const APP_URL = process.env.APP_URL ?? 'http://localhost:8092';
+const PRODUCTION = process.env.NODE_ENV === 'production';
+// Folder holding the exported website. When it exists, this same process serves the site, so one container runs everything.
+const WEB_DIR = process.env.WEB_DIR ?? join(process.cwd(), 'dist');
+// Comma-separated list of other sites allowed to call the API from a browser. Unset means any in development and
+// none in production, where the site and the API share one origin.
+const CORS_ORIGIN = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean) : PRODUCTION ? [] : '*';
 
 const app = new Hono<Env>();
-app.use('*', cors({ origin: '*', allowHeaders: ['Content-Type', 'Authorization'], allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] }));
-app.use('/uploads/*', serveStatic({ root: './server', onFound: (_p, c) => c.header('Cache-Control', 'public, max-age=3600') }));
+if (PRODUCTION) {
+  app.use(
+    '*',
+    secureHeaders({
+      xFrameOptions: 'DENY',
+      referrerPolicy: 'strict-origin-when-cross-origin',
+      strictTransportSecurity: 'max-age=31536000',
+      permissionsPolicy: { camera: [], microphone: [], geolocation: [], payment: [] },
+    }),
+  );
+}
+app.use('*', compress());
+app.use('*', cors({ origin: CORS_ORIGIN, allowHeaders: ['Content-Type', 'Authorization'], allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] }));
+app.use('/uploads/*', serveStatic({ root: UPLOAD_DIR, rewriteRequestPath: (p) => p.replace(/^\/uploads/, ''), onFound: (_p, c) => c.header('Cache-Control', 'public, max-age=2592000') }));
 app.onError((err, c) => {
   if (err instanceof HttpError) return c.json({ error: err.message }, err.status);
   console.error(err);
@@ -458,7 +479,7 @@ admin.post('/logout', (c) => {
 
 const IMAGE_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
 
-admin.post('/upload', async (c) => {
+admin.post('/upload', bodyLimit({ maxSize: 12 * 1024 * 1024, onError: (c) => c.json({ error: 'That image is larger than 10MB.' }, 413) }), async (c) => {
   const form = await c.req.parseBody();
   const file = form.file;
   if (!(file instanceof File)) throw new HttpError(400, 'Choose an image to upload.');
@@ -740,12 +761,44 @@ admin.delete('/comments/:id', (c) => {
 
 app.route('/api/admin', admin);
 app.get('/api/health', (c) => c.json({ ok: true }));
+
+if (existsSync(join(WEB_DIR, 'index.html'))) {
+  // Hashed build files never change, so browsers may keep them for a year; pages must always be revalidated.
+  const cacheFor = (path: string, c: Context) => {
+    c.header('Cache-Control', /[/\\](_expo|assets)[/\\]/.test(path) ? 'public, max-age=31536000, immutable' : 'no-cache');
+  };
+  const isFile = (path: string) => {
+    try {
+      return statSync(join(WEB_DIR, path)).isFile();
+    } catch {
+      return false;
+    }
+  };
+  // A real file is served as it is; any other path is a screen of the single-page app, which the router resolves.
+  const site = serveStatic({ root: WEB_DIR, rewriteRequestPath: (path) => (isFile(path) ? path : '/index.html'), onFound: cacheFor });
+  app.get('*', (c, next) => {
+    const path = c.req.path;
+    if (path.startsWith('/api/') || path.startsWith('/uploads/')) return next();
+    // A missing file with an extension (a script, an image) is a 404, not the app's HTML.
+    if (/\.\w+$/.test(path) && !isFile(path)) return next();
+    return site(c, next);
+  });
+}
+
 app.notFound((c) => c.json({ error: 'Not found.' }, 404));
 
 // ---------- start ----------
 
 seedIfEmpty();
 
-serve({ fetch: app.fetch, port: PORT }, (info) => {
+const server = serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(`Uwevwi API listening on http://localhost:${info.port}`);
 });
+
+// Containers send SIGTERM on stop; finish in-flight requests, then exit cleanly.
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  process.on(signal, () => {
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 5000).unref();
+  });
+}

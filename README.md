@@ -35,4 +35,5 @@ npm run lint
 
 - Research content is stored as a small Markdown subset (headings, bold, italic, links, lists, quotes, tables).
 - Enquiries from the contact form are stored in the `enquiries` table and read in the admin under Engagement, Enquiries.
-- The API allows any origin and authenticates admins with a bearer token. Lock `cors` down before deploying.
+- The API authenticates admins with a bearer token. In production set `CORS_ORIGIN` to your site's address (the Docker setup does this).
+- To host it on a VPS (Docker Compose + Caddy with automatic HTTPS), see [DEPLOY.md](DEPLOY.md).

@@ -3,8 +3,9 @@ import { dirname, join } from 'node:path';
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 
 export const SERVER_DIR = join(process.cwd(), 'server');
-export const DATA_DIR = join(SERVER_DIR, 'data');
-export const UPLOAD_DIR = join(SERVER_DIR, 'uploads');
+/** Everything that must survive a redeploy: the database and the uploaded images. Set DATA_DIR to mount one volume for both. */
+export const DATA_DIR = process.env.DATA_DIR ?? join(SERVER_DIR, 'data');
+export const UPLOAD_DIR = process.env.UPLOAD_DIR ?? (process.env.DATA_DIR ? join(DATA_DIR, 'uploads') : join(SERVER_DIR, 'uploads'));
 
 const DB_PATH = process.env.DB_PATH ?? join(DATA_DIR, 'uwevwi.db');
 mkdirSync(dirname(DB_PATH), { recursive: true });

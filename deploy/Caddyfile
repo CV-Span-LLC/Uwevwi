@@ -1,0 +1,40 @@
+# SITE_ADDRESS is the domain (Caddy then gets and renews a free HTTPS certificate on its own).
+# Use ":80" to serve plain HTTP, for example on a server IP before the domain points at it.
+{$SITE_ADDRESS:localhost} {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	# The API, kept off the public internet except through this one door.
+	handle /api/* {
+		request_body {
+			max_size 12MB
+		}
+		reverse_proxy api:8787
+	}
+
+	# Uploaded images are read straight from the shared volume.
+	handle /uploads/* {
+		root * /srv
+		header Cache-Control "public, max-age=2592000"
+		file_server
+	}
+
+	# The website. Every path that is not a file falls back to index.html, where the router takes over.
+	handle {
+		root * /srv/www
+		@hashed path /_expo/static/* /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		@page not path /_expo/static/* /assets/*
+		header @page Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

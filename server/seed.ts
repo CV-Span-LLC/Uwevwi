@@ -31,6 +31,8 @@ type SeedExhibition = {
   artists: { name: string; bio: string; photo: string; works: string[] }[];
   noteHeading: string;
   noteText: string;
+  /** When the show took place or was added; the newest published exhibition is the featured one. */
+  createdAt?: string;
 };
 
 function bootstrapAdmin() {
@@ -65,7 +67,7 @@ export function seedIfEmpty() {
       `INSERT INTO exhibitions (slug, title, series, edition, date_label, location, intro, flyer, gallery_heading, gallery_text, gallery, artists, note_heading, note_text, status, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'published', ?, ?)`,
       e.slug, e.title, e.series, e.edition, e.dateLabel, e.location, e.intro, e.flyer, e.galleryHeading, e.galleryText,
-      JSON.stringify(e.gallery), JSON.stringify(e.artists), e.noteHeading, e.noteText, new Date().toISOString(), new Date().toISOString(),
+      JSON.stringify(e.gallery), JSON.stringify(e.artists), e.noteHeading, e.noteText, e.createdAt ?? new Date().toISOString(), e.createdAt ?? new Date().toISOString(),
     );
   }
 

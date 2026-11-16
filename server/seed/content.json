@@ -169,6 +169,57 @@
       ],
       "noteHeading": "Imagination is the first access we all have: to dream, to question, to believe in more.",
       "noteText": "This Biennial is a celebration of that power. A power that lives in every child, every artist, and every community."
+    },
+    {
+      "slug": "a-new-language-of-presence",
+      "title": "A New Language of Presence",
+      "series": "Presented by SRS Collection × Uwevwi Studios",
+      "edition": "2025 · Exhibition",
+      "dateLabel": "1 - 30 June 2025",
+      "location": "Pier Harbour Residences and Spa, 14A A.J Marinho Drive, Victoria Island, Lagos",
+      "intro": "A hybrid exhibition featuring 12 dynamic contemporary Nigerian artists, asking where presence begins. Exhibiting artists: Akintomide Aluko, Ozuma Patrick, HK Locks, Elizabeth Ekpetorson, Francisca Willy, Adeniran Odumbo, Djakou Nathalie Kassi, Prince Moses Ozangeobuoma, Sidney Osioh, Olukunle Adenle, Popoola Nurudeen and Naomi Oyeniyi. Opening on 1 June, 4:00pm to 7:00pm, then open daily from 2 to 30 June, 11:00am to 7:00pm.",
+      "flyer": "/uploads/seed/work-presence.png",
+      "createdAt": "2025-06-01T09:00:00.000Z",
+      "galleryHeading": "",
+      "galleryText": "",
+      "gallery": [],
+      "artists": [],
+      "noteHeading": "",
+      "noteText": ""
+    },
+    {
+      "slug": "art-at-the-mews",
+      "title": "Art At The Mews",
+      "series": "Presented by SRS Collection",
+      "edition": "2025 · Art Salon",
+      "dateLabel": "14 March 2025",
+      "location": "The Mews, 12 Gerrard Road, Ikoyi, Lagos",
+      "intro": "An open house art salon featuring distinguished and multidisciplinary artists Orlu Prince Ozangeobuoma, Djakou Kassi Nathalie, Taiwo Owoyemi, Segun Alonge and Babatunde Ogunlade. Curated by Nazerin Gbinije, with Uwevwi as cultural partner. 6pm to 8pm.",
+      "flyer": "/uploads/seed/work-mews.png",
+      "createdAt": "2025-03-14T09:00:00.000Z",
+      "galleryHeading": "",
+      "galleryText": "",
+      "gallery": [],
+      "artists": [],
+      "noteHeading": "",
+      "noteText": ""
+    },
+    {
+      "slug": "spectrum-strings-attached",
+      "title": "Spectrum & Strings Attached",
+      "series": "Presented by SRS Collection",
+      "edition": "2025 · Exhibition",
+      "dateLabel": "22 February - 8 March 2025",
+      "location": "Pier Harbour Residences and Spa, 14A A.J Marinho Drive, Victoria Island, Lagos",
+      "intro": "The 4th solo exhibition of multidisciplinary artist Taiwo Owoyemi, curated by Nazerin Gbinije, with The Farm as cultural partner. Open daily from 11am to 7pm.",
+      "flyer": "/uploads/seed/work-spectrum.png",
+      "createdAt": "2025-02-22T09:00:00.000Z",
+      "galleryHeading": "",
+      "galleryText": "",
+      "gallery": [],
+      "artists": [],
+      "noteHeading": "",
+      "noteText": ""
     }
   ]
 }

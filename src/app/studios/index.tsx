@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import { CardGrid, PageHero, SectionTitle, SplitBand, type CardItem } from '@/components/blocks';
@@ -19,16 +20,15 @@ const WHAT_WE_DO: CardItem[] = [
   { title: 'Cultural Initiatives', text: 'Developing creative projects that connect art, cultural institutions and communities.' },
 ];
 
-const SELECTED_WORK = [
-  { title: 'Spectrum & Strings Attached', kind: 'Exhibition', year: '2025', image: require('../../../assets/figma/work-spectrum.png') },
-  { title: 'Art At The Mews', kind: 'Art Salon', year: '2025', image: require('../../../assets/figma/work-mews.png') },
-  { title: 'A New Language of Presence', kind: 'Exhibition', year: '2025', image: require('../../../assets/figma/work-presence.png') },
-];
+/** "2025 · Art Salon" becomes a year and a kind of show; shows without a kind are plain exhibitions. */
+function describe(e: Exhibition) {
+  const [year, ...rest] = e.edition.split('·').map((p) => p.trim());
+  return { year: year || e.dateLabel.match(/\d{4}/)?.[0] || '', kind: rest.join(' · ') || 'Exhibition' };
+}
 
-function FeaturedExhibition() {
+
+function FeaturedExhibition({ exhibition }: { exhibition: Exhibition | undefined }) {
   const { isDesktop, isMobile } = useBreakpoint();
-  const { data } = useRemote(() => publicApi<Exhibition[]>('/exhibitions'));
-  const exhibition = data?.[0];
   if (!exhibition) return null;
   const title = exhibition.series || exhibition.title;
   return (
@@ -66,29 +66,45 @@ function FeaturedExhibition() {
   );
 }
 
-function SelectedWork() {
-  const { isDesktop } = useBreakpoint();
+/** Every other published exhibition, each opening its own page. */
+function SelectedWork({ exhibitions }: { exhibitions: Exhibition[] }) {
+  const { isDesktop, isMobile } = useBreakpoint();
+  if (exhibitions.length === 0) return null;
+  const width: `${number}%` = isDesktop ? '32.4%' : isMobile ? '100%' : '49.2%';
   return (
     <Section paddingY={110} innerStyle={{ gap: 48 }}>
       <SectionTitle eyebrow="Selected work" title="Recent programmes and exhibitions." />
-      <View style={{ flexDirection: isDesktop ? 'row' : 'column', justifyContent: 'space-between', gap: 16 }}>
-        {SELECTED_WORK.map((work, i) => (
-          <Pressable key={work.title} accessibilityRole="text" style={{ flex: isDesktop ? 1 : undefined }}>
-            {({ hovered }: { hovered?: boolean }) => (
-              <View style={{ backgroundColor: colors.background, padding: 8, gap: 16, borderWidth: 1, borderColor: hovered ? colors.darkSection : colors.borders }}>
-                <View style={{ height: 380, overflow: 'hidden' }}>
-                  <Photo source={work.image} position="top" style={{ transform: [{ scale: hovered ? 1.04 : 1 }] }} />
-                </View>
-                <View style={{ gap: 8, paddingHorizontal: 10, paddingBottom: 14 }}>
-                  <Txt variant="mono" color={colors.accent} style={{ textTransform: 'uppercase' }}>
-                    {`/${String(i + 1).padStart(2, '0')} · ${work.kind} · ${work.year}`}
-                  </Txt>
-                  <Txt variant="h4">{work.title}</Txt>
-                </View>
-              </View>
-            )}
-          </Pressable>
-        ))}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 16 }}>
+        {exhibitions.map((work, i) => {
+          const { year, kind } = describe(work);
+          return (
+            <Link key={work.slug} href={{ pathname: '/studios/[slug]', params: { slug: work.slug } }} asChild>
+              <Pressable accessibilityRole="link" accessibilityLabel={`${work.title}, ${kind} ${year}`} style={{ width }}>
+                {({ hovered }: { hovered?: boolean }) => (
+                  <View style={{ backgroundColor: colors.background, padding: 8, gap: 16, borderWidth: 1, borderColor: hovered ? colors.darkSection : colors.borders }}>
+                    <View style={{ height: 380, overflow: 'hidden', backgroundColor: colors.white }}>
+                      {work.flyer ? <Photo source={{ uri: assetUrl(work.flyer) as string }} position="top" style={{ transform: [{ scale: hovered ? 1.04 : 1 }] }} /> : null}
+                    </View>
+                    <View style={{ gap: 8, paddingHorizontal: 10, paddingBottom: 14 }}>
+                      <Txt variant="mono" color={colors.accent} style={{ textTransform: 'uppercase' }}>
+                        {`/${String(i + 1).padStart(2, '0')} · ${kind}${year ? ` · ${year}` : ''}`}
+                      </Txt>
+                      <Txt variant="h4">{work.title}</Txt>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12, paddingTop: 6 }}>
+                        <Txt variant="mono" color={colors.textSecondary} numberOfLines={1} style={{ flex: 1 }}>
+                          {work.dateLabel}
+                        </Txt>
+                        <Txt variant="mono" color={hovered ? colors.accent : colors.darkSection}>
+                          VIEW →
+                        </Txt>
+                      </View>
+                    </View>
+                  </View>
+                )}
+              </Pressable>
+            </Link>
+          );
+        })}
       </View>
     </Section>
   );
@@ -97,6 +113,7 @@ function SelectedWork() {
 export default function Studios() {
   const heroImage = useSiteImage('studio.hero', HERO);
   const motionImage = useSiteImage('studio.motion', MOTION);
+  const { data } = useRemote(() => publicApi<Exhibition[]>('/exhibitions'));
   return (
     <SiteLayout>
       <PageHero
@@ -105,12 +122,12 @@ export default function Studios() {
         paragraphs={['We develop exhibitions, public programmes and creative initiatives that connect people with African art and culture.']}
         image={heroImage}
       />
-      <FeaturedExhibition />
+      <FeaturedExhibition exhibition={data?.[0]} />
       <Section paddingY={110} innerStyle={{ gap: 48 }}>
         <SectionTitle eyebrow="What we do" title="Four ways we bring culture to life." />
         <CardGrid items={WHAT_WE_DO} desktop={4} tablet={2} minHeight={260} />
       </Section>
-      <SelectedWork />
+      <SelectedWork exhibitions={data?.slice(1) ?? []} />
       <SplitBand background={colors.background} image={motionImage} eyebrow="Culture in motion" title="Art creates meaning when we experience it together." />
     </SiteLayout>
   );

@@ -4,11 +4,14 @@ import { Platform } from 'react-native';
 
 const PORT = 8787;
 
-/** Where the API lives. Set EXPO_PUBLIC_API_URL for a deployed server. */
+/** Where the API lives. In development it is on port 8787; a production web build uses its own origin. */
 export function apiBase(): string {
   const configured = process.env.EXPO_PUBLIC_API_URL;
   if (configured) return configured.replace(/\/$/, '');
-  if (Platform.OS === 'web' && typeof window !== 'undefined') return `${window.location.protocol}//${window.location.hostname}:${PORT}`;
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    // A deployed site is served from one origin with the API behind /api, so there is nothing to configure.
+    return __DEV__ ? `${window.location.protocol}//${window.location.hostname}:${PORT}` : window.location.origin;
+  }
   const host = Constants.expoConfig?.hostUri?.split(':')[0];
   return `http://${host ?? 'localhost'}:${PORT}`;
 }

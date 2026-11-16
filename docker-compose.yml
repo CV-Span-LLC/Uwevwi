@@ -1,0 +1,48 @@
+# Production stack: Caddy (HTTPS, static site, proxy) in front of the API.
+# Settings come from a `.env` file next to this one; copy deploy/production.env.example to start.
+services:
+  api:
+    build:
+      context: .
+      target: api
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      PORT: "8787"
+      DB_PATH: /app/server/data/uwevwi.db
+      APP_URL: https://${DOMAIN:?Set DOMAIN in .env}
+      CORS_ORIGIN: https://${DOMAIN}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@uwevwistudio.org}
+      ADMIN_NAME: ${ADMIN_NAME:-Nazerin Gbinije}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+    volumes:
+      - data:/app/server/data
+      - uploads:/app/server/uploads
+    expose:
+      - "8787"
+
+  web:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-${DOMAIN}}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - uploads:/srv/uploads:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  data:
+  uploads:
+  caddy_data:
+  caddy_config:

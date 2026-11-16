@@ -178,7 +178,7 @@ export default function ExhibitionList() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: 1, borderTopColor: A.line }}>
             <Icon name="alert" size={13} color={A.faint} />
             <AText kind="tiny" color={A.muted}>
-              Only published exhibitions appear on the website. The newest published one is featured on the Studios page.
+              Only published exhibitions appear on the website. The newest is featured on the Studios page and the rest are listed under Selected work, each linking to its own page.
             </AText>
           </View>
         </Card>

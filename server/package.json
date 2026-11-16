@@ -1,0 +1,11 @@
+{
+  "name": "uwevwi-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Runtime dependencies of the API, installed on their own in the Docker image.",
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "hono": "^4.13.14",
+    "tsx": "^4.23.15"
+  }
+}
