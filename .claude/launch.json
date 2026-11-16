@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "uwevwi-api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "server"],
+      "port": 8787
+    },
+    {
+      "name": "uwevwi-web",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["EXPO_PUBLIC_API_URL=http://localhost:8788", "npm", "run", "web:dev"],
+      "port": 8092
+    }
+  ]
+}

@@ -1,18 +1,16 @@
 import { Image } from 'expo-image';
 import { View } from 'react-native';
 
-import { PageHero, SectionTitle } from '@/components/blocks';
+import { CardGrid, DarkBand, PageHero, SectionHead, SectionTitle } from '@/components/blocks';
+import { DotCluster, Frame, FramedPhoto, SignalLine } from '@/components/futuristic';
 import { SiteLayout } from '@/components/site-layout';
-import { Eyebrow, Photo, Section, Txt, useBreakpoint } from '@/components/ui';
+import { Eyebrow, Section, Txt, useBreakpoint } from '@/components/ui';
 import { useSiteImage } from '@/lib/site-images';
-import { colors, fonts, layout } from '@/theme';
+import { colors, fonts } from '@/theme';
 
 const HERO = require('../../assets/figma/about-hero.jpg');
 const FOUNDER = require('../../assets/figma/founder.jpg');
 const ECO_MARK = require('../../assets/figma/eco-mark.svg');
-const ECO_ICON = require('../../assets/figma/eco-icon.svg');
-const QUOTE_OPEN = require('../../assets/figma/quote-open.svg');
-const QUOTE_CLOSE = require('../../assets/figma/quote-close.svg');
 
 const PRINCIPLES_INTRO = [
   { icon: require('../../assets/figma/pillar.svg'), text: 'Culture creates value.' },
@@ -23,7 +21,7 @@ const PRINCIPLES_INTRO = [
 const ECOSYSTEM = [
   {
     name: 'Uwevwi',
-    tagline: 'CULTURAL ASSET ADVISORY',
+    tagline: 'Cultural asset advisory',
     items: [
       { title: 'Collection Stewardship', text: 'Governance, documentation and conservation planning for collections.' },
       { title: 'Corporate Collections', text: 'Helping organisations build, manage and align collections with their values.' },
@@ -33,7 +31,7 @@ const ECOSYSTEM = [
   },
   {
     name: 'Uwevwi Studios',
-    tagline: 'Creative & Cultural Initiatives',
+    tagline: 'Creative and cultural initiatives',
     items: [
       { title: 'Exhibitions', text: 'Curating and producing exhibitions that inspire dialogue and deepen understanding.' },
       { title: 'Public Programmes', text: 'Talks, workshops and learning experiences that connect culture and community.' },
@@ -51,7 +49,7 @@ const SDGS = [
 ];
 
 const OUR_PRINCIPLES = [
-  { icon: require('../../assets/figma/principle-research.svg'), title: 'Research-led', text: 'Every recommendation is grounded in rigorous research and strategic thinking' },
+  { icon: require('../../assets/figma/principle-research.svg'), title: 'Research-led', text: 'Every recommendation is grounded in rigorous research and strategic thinking.' },
   { icon: require('../../assets/figma/who-collectors.svg'), title: 'Independent', text: 'We provide objective advice tailored to each client’s needs.' },
   { icon: require('../../assets/figma/principle-discreet.svg'), title: 'Discreet', text: 'We respect the confidentiality of our clients’ collections and engagements.' },
   { icon: require('../../assets/figma/who-family.svg'), title: 'Collaborative', text: 'We work alongside trusted specialists where additional expertise is required.' },
@@ -61,80 +59,56 @@ const OUR_PRINCIPLES = [
 function OurThinking() {
   const { isDesktop } = useBreakpoint();
   return (
-    <Section background={colors.background} paddingY={80}>
-      <View style={{ flexDirection: isDesktop ? 'row' : 'column', justifyContent: 'space-between', alignItems: 'stretch', gap: isDesktop ? 0 : 40 }}>
-        <View style={{ width: isDesktop ? 521 : '100%', gap: 24 }}>
-          <Eyebrow>OUR THINKING</Eyebrow>
-          <Txt variant="h2">
+    <DarkBand paddingY={110}>
+      <View style={{ flexDirection: isDesktop ? 'row' : 'column', justifyContent: 'space-between', gap: isDesktop ? 80 : 40 }}>
+        <View style={{ flex: isDesktop ? 1 : undefined, gap: 24, maxWidth: 560 }}>
+          <Eyebrow color={colors.signal}>Our thinking</Eyebrow>
+          <Txt variant="h2" color={colors.white}>
             We believe cultural assets should not only be acquired, they should be understood, governed and stewarded
             across generations.
           </Txt>
         </View>
-        {isDesktop ? <View style={{ width: 4, height: 276, borderRadius: 100, backgroundColor: colors.borders }} /> : null}
-        <View style={{ width: isDesktop ? 481 : '100%', gap: 18, justifyContent: 'center' }}>
-          <Txt variant="h4">Our work is guided by three principles:</Txt>
+        <View style={{ flex: isDesktop ? 1 : undefined, gap: 20, maxWidth: 520 }}>
+          <Txt variant="monoBody" color="rgba(255,255,255,0.72)">
+            / Our work is guided by three principles:
+          </Txt>
           <View>
-            {PRINCIPLES_INTRO.map((p) => (
-              <View
-                key={p.text}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 24, minHeight: 70, paddingVertical: 16, borderBottomWidth: 2, borderBottomColor: colors.borders }}
-              >
-                <Image source={p.icon} style={{ width: 42, height: 42 }} contentFit="contain" />
-                <Txt style={{ flex: 1 }}>{p.text}</Txt>
+            {PRINCIPLES_INTRO.map((p, i) => (
+              <View key={p.text} style={{ flexDirection: 'row', alignItems: 'center', gap: 20, minHeight: 72, borderBottomWidth: 1, borderBottomColor: colors.darkLine }}>
+                <Txt variant="mono" color={colors.signal} style={{ width: 26 }}>
+                  {String(i + 1).padStart(2, '0')}
+                </Txt>
+                <Txt variant="h5" color={colors.white} style={{ flex: 1 }}>
+                  {p.text}
+                </Txt>
+                <Image source={p.icon} tintColor={colors.white} style={{ width: 28, height: 28 }} contentFit="contain" />
               </View>
             ))}
           </View>
         </View>
       </View>
-    </Section>
+    </DarkBand>
   );
 }
 
 function Ecosystem() {
   const { isDesktop } = useBreakpoint();
   return (
-    <Section paddingTop={80} paddingBottom={100} innerStyle={{ gap: 34 }}>
-      <View style={{ maxWidth: 941 }}>
-        <SectionTitle eyebrow="OUR ECOSYSTEM" title="An integrated approach to culture and legacy." />
-      </View>
-      <View style={{ flexDirection: isDesktop ? 'row' : 'column', justifyContent: 'space-between', alignItems: 'stretch', gap: isDesktop ? 48 : 56 }}>
-        {ECOSYSTEM.map((company, i) => (
-          <View key={company.name} style={{ flex: 1, flexDirection: 'row', gap: 48 }}>
-            {isDesktop && i === 1 ? <View style={{ width: 2, borderRadius: 100, backgroundColor: colors.borders }} /> : null}
-            <View style={{ flex: 1, gap: 24 }}>
-              <View style={{ gap: 14 }}>
-                <Image source={ECO_MARK} style={{ width: 54, height: 54 }} contentFit="contain" />
+    <Section paddingY={110} innerStyle={{ gap: 56 }}>
+      <SectionHead eyebrow="Our ecosystem" title="An integrated approach to culture and legacy." />
+      <View style={{ flexDirection: isDesktop ? 'row' : 'column', gap: isDesktop ? 32 : 56 }}>
+        {ECOSYSTEM.map((company) => (
+          <View key={company.name} style={{ flex: 1, gap: 24 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <Image source={ECO_MARK} style={{ width: 48, height: 48 }} contentFit="contain" />
+              <View style={{ gap: 2 }}>
                 <Txt variant="h3">{company.name}</Txt>
-                <Txt variant="large" color={colors.textSecondary}>
+                <Txt variant="mono" color={colors.textSecondary} style={{ textTransform: 'uppercase' }}>
                   {company.tagline}
                 </Txt>
               </View>
-              <View>
-                {company.items.map((item, idx) => (
-                  <View
-                    key={item.title}
-                    style={{
-                      flexDirection: 'row',
-                      gap: 24,
-                      paddingVertical: 13,
-                      borderBottomWidth: idx === company.items.length - 1 ? 0 : 2,
-                      borderBottomColor: colors.borders,
-                    }}
-                  >
-                    <View style={{ width: 42, height: 77 }}>
-                      <Image source={ECO_ICON} style={{ width: 42, height: 42 }} contentFit="contain" />
-                      <Image source={ECO_ICON} style={{ width: 42, height: 42, marginTop: -7, transform: [{ scaleY: -1 }] }} contentFit="contain" />
-                    </View>
-                    <View style={{ flex: 1, gap: 4, justifyContent: 'center' }}>
-                      <Txt>{item.title}</Txt>
-                      <Txt variant="small" color={colors.textSecondary}>
-                        {item.text}
-                      </Txt>
-                    </View>
-                  </View>
-                ))}
-              </View>
             </View>
+            <CardGrid items={company.items} desktop={2} tablet={2} minHeight={220} background={colors.background} />
           </View>
         ))}
       </View>
@@ -144,76 +118,46 @@ function Ecosystem() {
 
 function Contribution() {
   const { isDesktop } = useBreakpoint();
+  const lines = ['Preserving cultural heritage.', 'Strengthening cultural infrastructure.', 'Stewarding cultural value.'];
   return (
-    <Section borderTop paddingY={80} innerStyle={{ gap: 24 }}>
-      <Eyebrow>OUR CONTRIBUTION</Eyebrow>
-      <View style={{ flexDirection: isDesktop ? 'row' : 'column', justifyContent: 'space-between', gap: 28 }}>
-        <View style={{ gap: 2, flexShrink: 1 }}>
-          <Txt variant="h2">Preserving cultural heritage.</Txt>
-          <Txt variant="h2">Strengthening cultural infrastructure.</Txt>
-          <Txt variant="h2">Stewarding cultural value.</Txt>
+    <Section background={colors.background} paddingY={110} innerStyle={{ gap: 40 }}>
+      <Eyebrow>Our contribution</Eyebrow>
+      <View style={{ flexDirection: isDesktop ? 'row' : 'column', justifyContent: 'space-between', gap: 40 }}>
+        <View style={{ flexShrink: 1 }}>
+          {lines.map((l, i) => (
+            <View key={l} style={{ flexDirection: 'row', alignItems: 'baseline', gap: 18, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.borders }}>
+              <Txt variant="mono" color={colors.accent}>
+                {String(i + 1).padStart(2, '0')}
+              </Txt>
+              <Txt variant="h2" style={{ flexShrink: 1 }}>
+                {l}
+              </Txt>
+            </View>
+          ))}
         </View>
-        <View style={{ width: isDesktop ? 420 : '100%' }}>
-          <Txt>
-            Our work contributes to broader social and economic outcomes through the stewardship of cultural assets, the
-            preservation of cultural heritage, and the strengthening of cultural infrastructure across Africa.
-          </Txt>
-        </View>
+        <Txt variant="monoBody" color={colors.textSecondary} style={{ maxWidth: 420 }}>
+          / Our work contributes to broader social and economic outcomes through the stewardship of cultural assets, the
+          preservation of cultural heritage, and the strengthening of cultural infrastructure across Africa.
+        </Txt>
       </View>
     </Section>
   );
 }
 
 function SdgAlignment() {
-  const { isDesktop, isMobile } = useBreakpoint();
   return (
-    <Section background={colors.background} paddingY={80} innerStyle={{ gap: 30 }}>
-      <Txt variant="h4">SDG ALIGNMENT</Txt>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: isDesktop ? 40 : 32, rowGap: 36 }}>
-        {SDGS.map((sdg) => (
-          <View key={sdg.title} style={{ flexDirection: 'row', gap: 24, width: isDesktop ? '47%' : '100%', flexGrow: 1, flexBasis: isDesktop ? '45%' : '100%' }}>
-            <Image source={sdg.image} style={{ width: isMobile ? 96 : 144, height: isMobile ? 96 : 144 }} contentFit="cover" />
-            <View style={{ flex: 1, gap: 8 }}>
-              <Txt>{sdg.title}</Txt>
-              <Txt variant="small" color={colors.textSecondary}>
-                {sdg.text}
-              </Txt>
-            </View>
-          </View>
-        ))}
-      </View>
+    <Section paddingY={110} innerStyle={{ gap: 48 }}>
+      <SectionTitle eyebrow="SDG alignment" title="Aligned with the Sustainable Development Goals." />
+      <CardGrid items={SDGS} desktop={4} tablet={2} minHeight={280} />
     </Section>
   );
 }
 
 function OurPrinciples() {
-  const { isDesktop } = useBreakpoint();
   return (
-    <Section paddingY={80} innerStyle={{ gap: 29 }}>
-      <Txt variant="h4">OUR PRINCIPLES</Txt>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-        {OUR_PRINCIPLES.map((p, i) => (
-          <View
-            key={p.title}
-            style={{
-              width: isDesktop ? '20%' : '50%',
-              minHeight: 268,
-              alignItems: 'center',
-              gap: 24,
-              paddingHorizontal: 40,
-              paddingVertical: 30,
-              borderRightWidth: isDesktop && i < OUR_PRINCIPLES.length - 1 ? 1.5 : 0,
-              borderRightColor: colors.borders,
-            }}
-          >
-            <Image source={p.icon} style={{ width: 42, height: 42 }} contentFit="contain" />
-            <Txt align="center">{p.title}</Txt>
-            <Txt variant="small" color={colors.textSecondary} align="center">
-              {p.text}
-            </Txt>
-          </View>
-        ))}
-      </View>
+    <Section background={colors.background} paddingY={110} innerStyle={{ gap: 48 }}>
+      <SectionTitle eyebrow="Our principles" title="How we work." />
+      <CardGrid items={OUR_PRINCIPLES} desktop={5} tablet={2} minHeight={300} />
     </Section>
   );
 }
@@ -222,62 +166,60 @@ function Founder() {
   const { isDesktop, isMobile } = useBreakpoint();
   const founderImage = useSiteImage('about.founder', FOUNDER);
   return (
-    <View style={{ backgroundColor: colors.accent }}>
-      <View
-        style={{
-          flexDirection: isDesktop ? 'row' : 'column',
-          alignItems: isDesktop ? 'center' : 'stretch',
-          gap: isDesktop ? 60 : 36,
-          width: '100%',
-          maxWidth: layout.maxWidth,
-          alignSelf: 'center',
-          paddingRight: isDesktop ? 80 : 0,
-          paddingBottom: isDesktop ? 0 : 48,
-        }}
-      >
-        <View style={{ width: isDesktop ? 544 : '100%', height: isDesktop ? 656 : isMobile ? 420 : 560 }}>
-          <Photo source={founderImage} position="top" />
-        </View>
-        <View style={{ flex: 1, gap: 34, paddingHorizontal: isDesktop ? 0 : isMobile ? 20 : 48 }}>
-          <View style={{ gap: 24 }}>
-            <Txt variant="overline" color={colors.white}>
-              MEET THE FOUNDER
-            </Txt>
-            <View style={{ gap: 8 }}>
+    <Frame background={colors.darkSection} overflow="hidden">
+      <View>
+        <SignalLine />
+        <View
+          style={{
+            flexDirection: isDesktop ? 'row' : 'column',
+            alignItems: isDesktop ? 'center' : 'stretch',
+            gap: isDesktop ? 72 : 40,
+            paddingLeft: isMobile ? 28 : 84,
+            paddingVertical: isMobile ? 64 : 110,
+          }}
+        >
+          <View style={{ width: isDesktop ? 400 : '100%', paddingRight: isDesktop ? 0 : 9 }}>
+            <FramedPhoto
+              source={founderImage}
+              position="top"
+              height={isDesktop ? 540 : isMobile ? 380 : 480}
+              marks="#6a665f"
+              badge={<DotCluster size={12} tones={[colors.accent, colors.darkSection, colors.darkSection, colors.accent]} />}
+            />
+          </View>
+          <View style={{ flex: isDesktop ? 1 : undefined, gap: 30 }}>
+            <View style={{ gap: 10 }}>
+              <Eyebrow color={colors.signal}>Meet the founder</Eyebrow>
               <Txt variant="h1" color={colors.white}>
                 Nazerin Gbinije
               </Txt>
-              <Txt variant="large" color={colors.borders}>
+              <Txt variant="mono" color="#8d877e" style={{ textTransform: 'uppercase' }}>
                 Founder & Cultural Strategist
               </Txt>
             </View>
-            <View style={{ gap: 14 }}>
-              <Txt variant="large" color={colors.white}>
-                Nazerin Gbinije is the Founder of Uwevwi, a cultural asset advisory practice working at the
-                intersection of art, governance and long-term stewardship. Her work explores how collections,
-                institutions and cultural assets can be structured to create enduring value through research, advisory
-                and strategic partnerships.
+            <View style={{ gap: 14, maxWidth: 600 }}>
+              <Txt variant="monoBody" color="rgba(255,255,255,0.78)">
+                Nazerin Gbinije is the Founder of Uwevwi, a cultural asset advisory practice working at the intersection
+                of art, governance and long-term stewardship. Her work explores how collections, institutions and
+                cultural assets can be structured to create enduring value through research, advisory and strategic
+                partnerships.
               </Txt>
-              <Txt variant="large" color={colors.white}>
-                Her research focuses on corporate collections, cultural asset governance, intergenerational
-                stewardship, and the emerging relationship between art and finance in Africa. Through Uwevwi, she works
-                with collectors, institutions and organisations seeking to build sustainable cultural legacies.
+              <Txt variant="monoBody" color="rgba(255,255,255,0.78)">
+                Her research focuses on corporate collections, cultural asset governance, intergenerational stewardship,
+                and the emerging relationship between art and finance in Africa. Through Uwevwi, she works with
+                collectors, institutions and organisations seeking to build sustainable cultural legacies.
               </Txt>
             </View>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Image source={QUOTE_OPEN} style={{ width: 19.5, height: 15.85, marginTop: 8 }} contentFit="contain" />
-            <Txt variant="quote" color={colors.white} style={{ flex: 1, fontFamily: fonts.quote }}>
-              The true value of a cultural asset is realised not at the moment of acquisition, but through the quality of
-              its stewardship over time.
-            </Txt>
-            <View style={{ justifyContent: 'flex-end' }}>
-              <Image source={QUOTE_CLOSE} style={{ width: 19.5, height: 15.85, marginBottom: 6, transform: [{ scaleY: -1 }, { rotate: '180deg' }] }} contentFit="contain" />
+            <View style={{ borderLeftWidth: 2, borderLeftColor: colors.signal, paddingLeft: 20, maxWidth: 600 }}>
+              <Txt variant="quote" color={colors.white} style={{ fontFamily: fonts.quote }}>
+                The true value of a cultural asset is realised not at the moment of acquisition, but through the quality
+                of its stewardship over time.
+              </Txt>
             </View>
           </View>
         </View>
       </View>
-    </View>
+    </Frame>
   );
 }
 
@@ -288,7 +230,6 @@ export default function About() {
       <PageHero
         eyebrow="ABOUT UWEVWI"
         title="Stewardship Begins With Structure."
-        titleWidth={403}
         paragraphs={[
           'Across Africa, collections are becoming increasingly valuable, artist estates are expanding, and institutions are investing in culture as part of their identity.',
           'Yet governance, documentation and long-term stewardship have not kept pace.',

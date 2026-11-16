@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 
-import { MarkdownEditor } from '@/admin/editor';
+import { RichEditor } from '@/admin/rich-editor';
 import { dateTime } from '@/admin/format';
 import { DateField, TimeField, splitIso, toIso } from '@/admin/pickers';
 import { AdminShell, PageHeader } from '@/admin/shell';
@@ -85,20 +85,21 @@ function FormBody({ id, initial, detail }: { id?: number; initial: Form; detail?
   const live = detail?.status === 'published' || detail?.status === 'scheduled';
 
   return (
-    <AdminShell title={editing ? 'Edit Research' : 'New Research'}>
+    <AdminShell title={editing ? 'Edit research' : 'New research'}>
       <PageHeader
-        back={{ label: editing ? 'Back to Research' : 'Back', href: '/admin/research' }}
-        title={editing ? 'Edit Research' : 'New Research'}
-        subtitle={editing ? 'Update your research articles.' : 'Write and publish research articles, journal and writers publications.'}
+        back={{ label: 'All research', href: '/admin/research' }}
+        title={editing ? 'Edit research' : 'New research'}
+        subtitle={editing ? 'Update the piece, then save your changes.' : 'Write and publish an article, journal entry or commissioned piece.'}
         actions={
           editing ? (
             <>
               {detail ? statusBadge(detail.status) : null}
-              <Btn label="Save Changes" iconRight="external" loading={busy === 'save'} onPress={() => save('save')} />
+              {live && detail ? <Btn label="View" kind="secondary" icon="external" onPress={() => router.push({ pathname: '/research/[slug]', params: { slug: detail.slug } })} /> : null}
+              <Btn label="Save changes" icon="check" loading={busy === 'save'} onPress={() => save('save')} />
             </>
           ) : (
             <>
-              <Btn label="Save Draft" kind="secondary" loading={busy === 'draft'} onPress={() => save('draft')} />
+              <Btn label="Save draft" kind="secondary" loading={busy === 'draft'} onPress={() => save('draft')} />
               <Btn label="Publish" icon="send" loading={busy === 'publish'} onPress={() => save('publish')} />
             </>
           )
@@ -110,17 +111,17 @@ function FormBody({ id, initial, detail }: { id?: number; initial: Form; detail?
           <SelectField label="Research Type" required value={form.type} options={RESEARCH_TYPES} onChange={(v) => set('type', v)} placeholder="Select the research type" error={tried && errors.type} />
           <Field label="Short description / Excerpt" required value={form.excerpt} onChangeText={(v) => set('excerpt', v)} multiline height={90} placeholder="A brief summary of your research article. This will appear in listings." error={tried && errors.excerpt} />
           <View style={{ gap: 6 }}>
-            <AText kind="label" color={A.accent}>
-              Content *
+            <AText kind="label">
+              Content <AText kind="label" color={A.accent}>*</AText>
             </AText>
-            <MarkdownEditor value={form.content} onChange={(v) => set('content', v)} error={tried && !!errors.content} />
+            <RichEditor value={form.content} onChange={(v) => set('content', v)} error={tried && !!errors.content} />
             {tried && errors.content ? (
               <AText kind="small" color={A.accent}>
                 {errors.content}
               </AText>
             ) : (
               <AText kind="small" color={A.muted}>
-                Use the toolbar for headings, bold, links, lists and quotes.
+                Format with the toolbar. Add images with the Image button, or paste and drop them into the text.
               </AText>
             )}
           </View>
@@ -128,38 +129,35 @@ function FormBody({ id, initial, detail }: { id?: number; initial: Form; detail?
 
         <View style={{ width: stacked ? '100%' : 300, gap: 16 }}>
           <Card style={{ gap: 12 }}>
-            <ImageField label="Featured Image" value={form.image} onChange={(v) => set('image', v)} height={170} emptyText="Click to add featured image" />
+            <ImageField label="Featured image" value={form.image} onChange={(v) => set('image', v)} height={170} emptyText="Click to add featured image" />
           </Card>
           <Card style={{ gap: 14, zIndex: 5 }}>
-            <AText kind="label">Schedule Release</AText>
-            <AText kind="small" color={A.muted}>
-              Release Date and time
-            </AText>
+            <AText kind="eyebrow" color={A.muted}>Schedule</AText>
             <TimeField value={form.time} onChange={(v) => set('time', v)} />
             <DateField value={form.date} onChange={(v) => set('date', v)} />
             <AText kind="tiny" color={A.muted}>
-              Your research will be published at the date and time selected. Leave empty to publish immediately.
+              Publishes at the date and time you choose. Leave empty to publish immediately.
             </AText>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              {editing ? <Btn label="Delete" kind="ghost" icon="trash" small onPress={() => setConfirm('delete')} style={{ borderColor: 'transparent' }} /> : <View />}
-              <Btn label="Clear" kind="secondary" small onPress={() => setForm((f) => ({ ...f, date: '', time: '' }))} />
+              <View />
+              <Btn label="Clear schedule" kind="secondary" small onPress={() => setForm((f) => ({ ...f, date: '', time: '' }))} />
             </View>
           </Card>
           {editing && detail ? (
             <>
-              <Card style={{ gap: 12 }}>
-                <AText kind="label">Key Details</AText>
+              <Card style={{ gap: 4 }}>
+                <AText kind="eyebrow" color={A.muted} style={{ marginBottom: 6 }}>Details</AText>
                 <DetailRow label="Author" value={detail.author} />
                 <DetailRow label="Published Date" value={live ? dateTime(detail.publishedAt) : 'Not published yet'} />
                 <DetailRow label="Views" value={String(detail.views)} />
                 <DetailRow label="Comments" value={String(detail.comments)} />
               </Card>
               <Card style={{ gap: 12 }}>
-                <AText kind="label">Status & Visibility</AText>
+                <AText kind="eyebrow" color={A.muted}>Visibility</AText>
                 <DetailRow label="Status" value={detail.status === 'scheduled' ? 'Scheduled' : detail.status === 'published' ? 'Published' : 'Draft'} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   {live ? <Btn label="Move to draft" kind="secondary" small loading={busy === 'draft'} onPress={() => save('draft')} /> : <Btn label="Publish" icon="send" small loading={busy === 'publish'} onPress={() => save('publish')} />}
-                  <Btn label="Remove" kind="ghost" icon="trash" small onPress={() => setConfirm('delete')} style={{ borderColor: 'transparent' }} />
+                  <Btn label="Delete" kind="danger" icon="trash" small onPress={() => setConfirm('delete')} />
                 </View>
               </Card>
             </>
@@ -173,13 +171,13 @@ function FormBody({ id, initial, detail }: { id?: number; initial: Form; detail?
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <View style={{ gap: 4 }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: A.line }}>
       <AText kind="small" color={A.muted}>
         {label}
       </AText>
-      <View style={{ backgroundColor: A.field, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 8 }}>
-        <AText kind="small">{value}</AText>
-      </View>
+      <AText kind="small" style={{ fontFamily: 'Inter_500Medium', flexShrink: 1, textAlign: 'right' }}>
+        {value}
+      </AText>
     </View>
   );
 }

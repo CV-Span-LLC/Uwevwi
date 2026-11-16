@@ -45,7 +45,7 @@ export default function ResetPassword() {
         <>
           <Field label="New password" value={password} onChangeText={setPassword} secureTextEntry placeholder="At least 10 characters" />
           <Field label="Confirm password" value={confirm} onChangeText={setConfirm} secureTextEntry placeholder="Repeat the password" onSubmitEditing={submit} error={error ?? undefined} />
-          <Btn label="Save password" iconRight="arrow-right" onPress={submit} loading={busy} style={{ height: 52 }} />
+          <Btn label="Save password" iconRight="arrow-right" onPress={submit} loading={busy} style={{ height: 44 }} />
         </>
       )}
       <TextLink href="/admin/forgot-password" label="Request a new link" />

@@ -51,11 +51,12 @@ export function Txt({ variant = 'body', color = colors.text, align, style, ...re
   return <Text {...rest} style={[scaled, { color }, align ? { textAlign: align } : null, style]} />;
 }
 
-/** Small uppercase accent label that opens most sections, e.g. "OUR PARTNERS". */
+/** Small mono label that opens most sections, e.g. "/OUR_PARTNERS". */
 export function Eyebrow({ children, color = colors.accent, style }: { children: ReactNode; color?: string; style?: StyleProp<TextStyle> }) {
+  const text = typeof children === 'string' ? `/${children.trim().toUpperCase().replace(/\s+/g, '_')}` : children;
   return (
-    <Txt variant="large" color={color} style={style}>
-      {children}
+    <Txt variant="mono" color={color} style={style}>
+      {text}
     </Txt>
   );
 }
@@ -109,64 +110,85 @@ export function Section({
   );
 }
 
-const ARROW_WHITE = require('../../assets/figma/arrow-right-white.svg');
-const ARROW_ACCENT = require('../../assets/figma/arrow-right-accent.svg');
+const ARROW = require('../../assets/figma/arrow-right-white.svg');
 
-type ButtonProps = {
+/** Pressable state with the hover flag react-native-web adds. */
+export type PressState = { pressed: boolean; hovered?: boolean };
+
+export type Tone = 'accent' | 'signal' | 'ink' | 'light' | 'ghost';
+const TONES: Record<Tone, { bg: string; fg: string; border: string }> = {
+  accent: { bg: colors.accent, fg: colors.white, border: colors.accent },
+  signal: { bg: colors.signal, fg: colors.white, border: colors.signal },
+  ink: { bg: colors.darkSection, fg: colors.white, border: colors.darkSection },
+  light: { bg: colors.white, fg: colors.darkSection, border: colors.white },
+  ghost: { bg: 'transparent', fg: colors.white, border: '#6a665f' },
+};
+
+/** Square mono button with a trailing arrow. Renders a link when `href` is given. */
+export function TechButton({
+  label,
+  href,
+  onPress,
+  tone = 'accent',
+  small,
+  style,
+}: {
   label: string;
   href?: Href;
   onPress?: () => void;
+  tone?: Tone;
+  small?: boolean;
   style?: StyleProp<ViewStyle>;
-  disabled?: boolean;
-};
-
-function ButtonBody({ label, kind, pressed }: { label: string; kind: 'primary' | 'secondary'; pressed: boolean }) {
-  const primary = kind === 'primary';
-  return (
+}) {
+  const t = TONES[tone];
+  const body = ({ pressed, hovered }: PressState) => (
     <View
-      style={[
-        styles.button,
-        primary ? styles.buttonPrimary : styles.buttonSecondary,
-        pressed ? { opacity: 0.8 } : null,
-      ]}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 16,
+        paddingHorizontal: small ? 14 : 22,
+        paddingVertical: small ? 10 : 16,
+        backgroundColor: t.bg,
+        borderWidth: 1,
+        borderColor: t.border,
+        borderRadius: 2,
+        opacity: pressed ? 0.8 : 1,
+        transform: [{ translateY: hovered ? -2 : 0 }],
+      }}
     >
-      <Txt variant="button" color={primary ? colors.white : colors.accent} numberOfLines={1}>
+      <Txt variant="mono" color={t.fg} numberOfLines={1} style={{ textTransform: 'uppercase' }}>
         {label}
       </Txt>
-      <Image source={primary ? ARROW_WHITE : ARROW_ACCENT} style={styles.arrow} contentFit="contain" />
+      <Image source={ARROW} tintColor={t.fg} style={{ width: 16, height: 16 }} contentFit="contain" />
     </View>
   );
-}
-
-function ButtonBase({ kind, ...props }: ButtonProps & { kind: 'primary' | 'secondary' }) {
-  const { label, href, onPress, style, disabled } = props;
   if (href) {
     return (
       <Link href={href} asChild>
-        <Pressable accessibilityRole="link" style={StyleSheet.flatten([styles.buttonWrap, style])}>
-          {({ pressed }) => <ButtonBody label={label} kind={kind} pressed={pressed} />}
+        <Pressable accessibilityRole="link" style={StyleSheet.flatten([{ alignSelf: 'flex-start' }, style])}>
+          {body}
         </Pressable>
       </Link>
     );
   }
   return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={disabled}
-      onPress={onPress}
-      style={[styles.buttonWrap, disabled ? { opacity: 0.5 } : null, style]}
-    >
-      {({ pressed }) => <ButtonBody label={label} kind={kind} pressed={pressed} />}
+    <Pressable accessibilityRole="button" onPress={onPress} style={[{ alignSelf: 'flex-start' }, style]}>
+      {body}
     </Pressable>
   );
 }
 
-export function PrimaryButton(props: ButtonProps) {
-  return <ButtonBase kind="primary" {...props} />;
+
+type ButtonProps = { label: string; href?: Href; onPress?: () => void; style?: StyleProp<ViewStyle>; disabled?: boolean };
+
+export function PrimaryButton({ disabled, ...props }: ButtonProps) {
+  return <TechButton tone="accent" {...props} style={[props.style, disabled ? { opacity: 0.5 } : null]} />;
 }
 
 export function SecondaryButton(props: ButtonProps) {
-  return <ButtonBase kind="secondary" {...props} />;
+  return <TechButton tone="ink" {...props} />;
 }
 
 /** Remote-free image helper: fills its parent with `cover` by default. */
@@ -177,18 +199,3 @@ export function Photo({ source, style, contentFit = 'cover', position }: { sourc
 export function Divider({ color = colors.borders, thickness = 2, style }: { color?: string; thickness?: number; style?: StyleProp<ViewStyle> }) {
   return <View style={[{ height: thickness, backgroundColor: color, alignSelf: 'stretch' }, style]} />;
 }
-
-const styles = StyleSheet.create({
-  buttonWrap: { alignSelf: 'flex-start' },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-  },
-  buttonPrimary: { backgroundColor: colors.accent, borderRadius: 8 },
-  buttonSecondary: { borderBottomWidth: 1.5, borderBottomColor: colors.accent },
-  arrow: { width: 24, height: 24 },
-});

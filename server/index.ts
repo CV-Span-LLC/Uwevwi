@@ -251,7 +251,7 @@ function exhibitionInput(data: Record<string, unknown>) {
 
 export const IMAGE_SLOTS = [
   { key: 'home.hero', group: 'Home', label: 'Hero Image', size: '796× 800' },
-  { key: 'home.bottom', group: 'Home', label: 'Bottom Image', size: '1440 × 436' },
+  { key: 'home.bottom', group: 'Home', label: 'Bottom Image', size: '840 × 600' },
   { key: 'about.hero', group: 'About Us', label: 'Hero Image', size: '796× 800' },
   { key: 'about.founder', group: 'About Us', label: 'Founder Image', size: '544 × 656' },
   { key: 'advisory.hero', group: 'Advisory', label: 'Hero Image', size: '796× 800' },

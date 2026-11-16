@@ -8,6 +8,10 @@ export const colors = {
   text: '#171717',
   textSecondary: '#6b6862',
   darkSection: '#1d1c1a',
+  /** Brighter red used only on dark sections, where the burgundy accent would disappear. */
+  signal: '#e4492f',
+  /** Hairlines and muted marks on dark sections. */
+  darkLine: '#3a3733',
 } as const;
 
 export const fonts = {
@@ -15,6 +19,9 @@ export const fonts = {
   body: 'Inter_400Regular',
   bodyMedium: 'Inter_500Medium',
   header: 'Manrope_400Regular',
+  mono: 'JetBrainsMono_400Regular',
+  monoMedium: 'JetBrainsMono_500Medium',
+  pixel: 'PixelifySans_400Regular',
   quote: Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia, serif' }) as string,
 } as const;
 
@@ -52,6 +59,10 @@ export const type = {
   button: { fontFamily: fonts.bodyMedium, fontSize: 14, lineHeight: 20 },
   nav: { fontFamily: fonts.bodyMedium, fontSize: 14, lineHeight: 18 },
   quote: { fontFamily: fonts.quote, fontSize: 24, lineHeight: 34 },
+  giant: { fontFamily: fonts.display, fontSize: 80, lineHeight: 76, letterSpacing: -1 },
+  stack: { fontFamily: fonts.display, fontSize: 64, lineHeight: 70 },
+  mono: { fontFamily: fonts.monoMedium, fontSize: 12, lineHeight: 18, letterSpacing: 0.8 },
+  monoBody: { fontFamily: fonts.mono, fontSize: 13, lineHeight: 22 },
 } satisfies Record<string, TextStyle>;
 
 export type TypeVariant = keyof typeof type;
@@ -59,6 +70,6 @@ export type TypeVariant = keyof typeof type;
 /** Scale factor applied to a display size on narrower screens. */
 export const displayScale: Record<Breakpoint, Partial<Record<TypeVariant, number>>> = {
   desktop: {},
-  tablet: { hero: 0.85, h1: 0.85, h2: 0.9 },
-  mobile: { hero: 0.6, h1: 0.62, h2: 0.75, h3: 0.8, h4: 0.9 },
+  tablet: { hero: 0.85, h1: 0.85, h2: 0.9, giant: 0.8, stack: 0.85 },
+  mobile: { hero: 0.6, h1: 0.62, h2: 0.75, h3: 0.8, h4: 0.9, giant: 0.5, stack: 0.6 },
 };

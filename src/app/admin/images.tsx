@@ -1,11 +1,11 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 
-import { Icon } from '@/admin/icons';
+import { shortDate } from '@/admin/format';
 import { AdminShell, PageHeader } from '@/admin/shell';
-import { A, AText, Btn, Card, Loading, errorText, useToast } from '@/admin/ui';
+import { A, AText, Badge, Btn, Loading, Panel, errorText, useToast } from '@/admin/ui';
 import { adminApi, assetUrl, uploadImage } from '@/lib/api';
 import { useRemote } from '@/lib/use-remote';
 
@@ -27,15 +27,15 @@ const DEFAULTS: Record<string, number> = {
 };
 
 const DESCRIPTIONS: Record<string, string> = {
-  Home: 'Image used on the homepage.',
-  'About Us': 'Image used on the about us page.',
-  Advisory: 'Images used on the Advisory page.',
-  Stewardship: 'Image used on the Stewardship page.',
-  Studio: 'Image used on the Studio page.',
-  Research: 'Image used on the Research page',
+  Home: 'Shown on the home page: the hero photo and the purpose section.',
+  'About Us': 'Shown on the About page.',
+  Advisory: 'Shown on the Advisory page and in the services list on the home page.',
+  Stewardship: 'Shown on the Stewardship page and in the services list on the home page.',
+  Studio: 'Shown on the Studios page and in the services list on the home page.',
+  Research: 'Shown on the Research page and in the services list on the home page.',
 };
 
-function Tile({ slot, onChanged }: { slot: Slot; onChanged: () => void }) {
+function Tile({ slot, onChanged, width }: { slot: Slot; onChanged: () => void; width: `${number}%` }) {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const source = slot.path ? { uri: assetUrl(slot.path) } : DEFAULTS[slot.key];
@@ -69,17 +69,20 @@ function Tile({ slot, onChanged }: { slot: Slot; onChanged: () => void }) {
   };
 
   return (
-    <View style={{ flexGrow: 1, flexBasis: 320, flexDirection: 'row', gap: 16, alignItems: 'flex-start' }}>
-      <View style={{ width: 182, height: 75, backgroundColor: '#e8e6df', overflow: 'hidden', borderRadius: 4 }}>
+    <View style={{ width, borderWidth: 1, borderColor: A.line, borderRadius: 12, overflow: 'hidden', backgroundColor: A.white }}>
+      <View style={{ height: 160, backgroundColor: A.field }}>
         <Image source={source} style={{ width: '100%', height: '100%' }} contentFit="cover" accessibilityLabel={`${slot.group} ${slot.label}`} />
+        <View style={{ position: 'absolute', top: 10, left: 10 }}>{slot.path ? <Badge tone="blue" label="Custom" /> : <Badge tone="grey" label="Original" />}</View>
       </View>
-      <View style={{ gap: 6, flex: 1 }}>
-        <AText kind="small">{slot.label}</AText>
-        <AText kind="tiny" color={A.muted}>
-          {slot.size}
-        </AText>
+      <View style={{ padding: 14, gap: 12 }}>
+        <View style={{ gap: 2 }}>
+          <AText kind="label">{slot.label}</AText>
+          <AText kind="tiny" color={A.muted}>
+            {slot.size} px{slot.updatedAt && slot.path ? ` · changed ${shortDate(slot.updatedAt)}` : ''}
+          </AText>
+        </View>
         <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-          <Btn label={busy ? 'Uploading…' : 'Change'} kind="secondary" small onPress={change} disabled={busy} />
+          <Btn label={busy ? 'Uploading…' : 'Replace'} kind="secondary" small icon="image" onPress={change} disabled={busy} />
           {slot.path ? <Btn label="Reset" kind="ghost" small onPress={reset} /> : null}
         </View>
       </View>
@@ -88,35 +91,36 @@ function Tile({ slot, onChanged }: { slot: Slot; onChanged: () => void }) {
 }
 
 export default function WebsiteImages() {
+  const { width } = useWindowDimensions();
   const { data, error, loading, reload } = useRemote(() => adminApi<Slot[]>('/site-images'));
   const groups = data ? [...new Set(data.map((s) => s.group))] : [];
+  const cols = width >= 1280 ? 3 : width >= 760 ? 2 : 1;
+  const tileWidth: `${number}%` = cols === 3 ? '32%' : cols === 2 ? '48.8%' : '100%';
+  const custom = (data ?? []).filter((s) => s.path).length;
 
   return (
-    <AdminShell title="Website Images" maxWidth={900}>
-      <PageHeader title="Website Images" subtitle="Manage the images used across your website. You can replace any image at any time by uploading a new one from your computer." />
+    <AdminShell title="Website images" maxWidth={1160}>
+      <PageHeader
+        title="Website images"
+        subtitle={data ? `${custom} of ${data.length} images replaced. Anything you don’t replace keeps its original photo.` : 'Replace the photographs used across the website.'}
+      />
       {!data ? (
         <Loading error={error} onRetry={reload} text={loading ? 'Loading images…' : undefined} />
       ) : (
-        <View style={{ gap: 12 }}>
+        <View style={{ gap: 16 }}>
           {groups.map((group) => (
-            <Card key={group} style={{ gap: 14, padding: 16 }}>
-              <View style={{ gap: 2 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Icon name="dashboard" size={15} color={A.muted} />
-                  <AText kind="small">{group}</AText>
-                </View>
-                <AText kind="tiny" color={A.muted} style={{ marginLeft: 23 }}>
-                  {DESCRIPTIONS[group]}
-                </AText>
-              </View>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20 }}>
+            <Panel key={group} title={group} subtitle={DESCRIPTIONS[group]}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 16 }}>
                 {data
                   .filter((s) => s.group === group)
                   .map((slot) => (
-                    <Tile key={slot.key} slot={slot} onChanged={reload} />
+                    <Tile key={slot.key} slot={slot} onChanged={reload} width={tileWidth} />
                   ))}
+                {Array.from({ length: (cols - (data.filter((s) => s.group === group).length % cols)) % cols }, (_, i) => (
+                  <View key={`pad-${i}`} style={{ width: tileWidth }} />
+                ))}
               </View>
-            </Card>
+            </Panel>
           ))}
         </View>
       )}

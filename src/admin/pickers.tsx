@@ -11,7 +11,7 @@ function Trigger({ label, value, placeholder, open, onPress }: { label?: string;
   return (
     <View style={{ gap: 6 }}>
       {label ? <AText kind="label">{label}</AText> : null}
-      <Pressable accessibilityRole="button" onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: A.field, borderWidth: 1, borderColor: A.line, borderRadius: 8, height: 40, paddingHorizontal: 12 }}>
+      <Pressable accessibilityRole="button" onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: A.white, borderWidth: 1, borderColor: A.lineStrong, borderRadius: 8, height: 42, paddingHorizontal: 12 }}>
         <AText kind="small" color={value ? A.text : A.faint}>
           {value || placeholder}
         </AText>

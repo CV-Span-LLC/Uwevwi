@@ -27,7 +27,17 @@ export type IconName =
   | 'calendar'
   | 'close'
   | 'logout'
-  | 'edit';
+  | 'edit'
+  | 'plus'
+  | 'globe'
+  | 'menu'
+  | 'alert'
+  | 'clock'
+  | 'check-circle'
+  | 'inbox'
+  | 'sort'
+  | 'undo'
+  | 'redo';
 
 /** Simple 24px outline icons, drawn here so the admin needs no icon font. */
 export function Icon({ name, size = 18, color = '#171717', strokeWidth = 1.7 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
@@ -144,6 +154,41 @@ export function Icon({ name, size = 18, color = '#171717', strokeWidth = 1.7 }: 
       {name === 'close' ? <Path d="m6 6 12 12M18 6 6 18" {...p} /> : null}
       {name === 'logout' ? <Path d="M10 4H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H10M15 8l4 4-4 4M19 12H9" {...p} /> : null}
       {name === 'edit' ? <Path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z M14 8l3 3" {...p} /> : null}
+      {name === 'plus' ? <Path d="M12 5v14M5 12h14" {...p} /> : null}
+      {name === 'globe' ? (
+        <>
+          <Circle cx={12} cy={12} r={9} {...p} />
+          <Path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9S14.6 18.4 12 21c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3Z" {...p} />
+        </>
+      ) : null}
+      {name === 'menu' ? <Path d="M4 7h16M4 12h16M4 17h16" {...p} /> : null}
+      {name === 'alert' ? (
+        <>
+          <Circle cx={12} cy={12} r={9} {...p} />
+          <Path d="M12 7.5V13M12 16.2v.1" {...p} />
+        </>
+      ) : null}
+      {name === 'clock' ? (
+        <>
+          <Circle cx={12} cy={12} r={9} {...p} />
+          <Path d="M12 7v5l3 2" {...p} />
+        </>
+      ) : null}
+      {name === 'check-circle' ? (
+        <>
+          <Circle cx={12} cy={12} r={9} {...p} />
+          <Path d="m8 12.5 3 3 5-6" {...p} />
+        </>
+      ) : null}
+      {name === 'inbox' ? (
+        <>
+          <Path d="M3.5 13.5 6 5.5h12l2.5 8v5a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-5Z" {...p} />
+          <Path d="M3.5 13.5H9a3 3 0 0 0 6 0h5.5" {...p} />
+        </>
+      ) : null}
+      {name === 'undo' ? <Path d="M9 14 4 9l5-5M4 9h9.5a6.5 6.5 0 0 1 0 13H11" {...p} /> : null}
+      {name === 'redo' ? <Path d="m15 14 5-5-5-5M20 9h-9.5a6.5 6.5 0 0 0 0 13H13" {...p} /> : null}
+      {name === 'sort' ? <Path d="M8 5v14m0 0-3-3m3 3 3-3M16 19V5m0 0-3 3m3-3 3 3" {...p} /> : null}
     </Svg>
   );
 }

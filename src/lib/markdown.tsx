@@ -1,56 +1,88 @@
+import { Image } from 'expo-image';
+import { useState, type ReactNode } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
-import type { ReactNode } from 'react';
 
 import { Txt, useBreakpoint } from '@/components/ui';
+import { assetUrl } from '@/lib/api';
 import { colors, fonts } from '@/theme';
 
 /**
- * A deliberately small Markdown subset, shared by the admin editor and the public article pages:
- * `## heading`, `### subheading`, `> quote`, `- bullets`, `1. numbers`, pipe tables,
- * **bold**, *italic* and [links](https://...). Blank lines separate blocks.
+ * The Markdown subset shared by the admin editor and the public article pages:
+ * `## heading`, `### subheading`, `> quote`, `- bullets`, `1. numbers`, pipe tables, `---` dividers,
+ * fenced code blocks, `![caption](/uploads/file.jpg)` images, and inline **bold**, *italic*, ~~strike~~,
+ * `code` and [links](https://...). Blank lines separate blocks.
  */
 
-type Inline = { text: string; bold?: boolean; italic?: boolean; href?: string };
+type Inline = { text: string; bold?: boolean; italic?: boolean; strike?: boolean; code?: boolean; href?: string };
 
 export function parseInline(source: string): Inline[] {
   const out: Inline[] = [];
-  const pattern = /\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  const pattern = /\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)/g;
   let last = 0;
   for (const match of source.matchAll(pattern)) {
     const index = match.index ?? 0;
     if (index > last) out.push({ text: source.slice(last, index) });
     if (match[1] !== undefined) out.push({ text: match[1], bold: true });
     else if (match[2] !== undefined) out.push({ text: match[2], italic: true });
-    else out.push({ text: match[3], href: match[4] });
+    else if (match[3] !== undefined) out.push({ text: match[3], strike: true });
+    else if (match[4] !== undefined) out.push({ text: match[4], code: true });
+    else out.push({ text: match[5], href: match[6] });
     last = index + match[0].length;
   }
   if (last < source.length) out.push({ text: source.slice(last) });
   return out;
 }
 
-type Block =
+export type Block =
   | { kind: 'h2' | 'h3' | 'quote' | 'p'; text: string }
   | { kind: 'ul' | 'ol'; items: string[] }
-  | { kind: 'table'; head: string[]; rows: string[][] };
+  | { kind: 'table'; head: string[]; rows: string[][] }
+  | { kind: 'image'; alt: string; src: string }
+  | { kind: 'code'; text: string }
+  | { kind: 'hr' };
 
 const cells = (line: string) => line.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
 
+function blockFromLines(lines: string[]): Block {
+  const first = lines[0];
+  const image = lines.length === 1 ? first.trim().match(/^!\[(.*?)\]\((\S+?)\)$/) : null;
+  if (image) return { kind: 'image', alt: image[1], src: image[2] };
+  if (lines.length === 1 && /^(-{3,}|\*{3,}|_{3,})$/.test(first.trim())) return { kind: 'hr' };
+  if (first.startsWith('### ')) return { kind: 'h3', text: first.slice(4) };
+  if (first.startsWith('## ')) return { kind: 'h2', text: first.slice(3) };
+  if (first.startsWith('> ')) return { kind: 'quote', text: lines.map((l) => l.replace(/^>\s?/, '')).join(' ') };
+  if (lines.every((l) => /^[-*] /.test(l))) return { kind: 'ul', items: lines.map((l) => l.slice(2)) };
+  if (lines.every((l) => /^\d+\. /.test(l))) return { kind: 'ol', items: lines.map((l) => l.replace(/^\d+\. /, '')) };
+  if (lines.length >= 2 && lines.every((l) => l.trim().startsWith('|'))) {
+    const [head, , ...rows] = lines;
+    return { kind: 'table', head: cells(head), rows: rows.map(cells) };
+  }
+  return { kind: 'p', text: lines.join('\n') };
+}
+
 export function parseBlocks(source: string): Block[] {
   const blocks: Block[] = [];
-  for (const chunk of source.replace(/\r\n/g, '\n').split(/\n{2,}/)) {
-    const lines = chunk.split('\n').filter((l) => l.trim() !== '');
-    if (lines.length === 0) continue;
-    const first = lines[0];
-    if (first.startsWith('### ')) blocks.push({ kind: 'h3', text: first.slice(4) });
-    else if (first.startsWith('## ')) blocks.push({ kind: 'h2', text: first.slice(3) });
-    else if (first.startsWith('> ')) blocks.push({ kind: 'quote', text: lines.map((l) => l.replace(/^>\s?/, '')).join(' ') });
-    else if (lines.every((l) => /^[-*] /.test(l))) blocks.push({ kind: 'ul', items: lines.map((l) => l.slice(2)) });
-    else if (lines.every((l) => /^\d+\. /.test(l))) blocks.push({ kind: 'ol', items: lines.map((l) => l.replace(/^\d+\. /, '')) });
-    else if (lines.length >= 2 && lines.every((l) => l.trim().startsWith('|'))) {
-      const [head, , ...rows] = lines;
-      blocks.push({ kind: 'table', head: cells(head), rows: rows.map(cells) });
-    } else blocks.push({ kind: 'p', text: lines.join('\n') });
+  let current: string[] = [];
+  let code: string[] | null = null;
+  const flush = () => {
+    if (current.length) blocks.push(blockFromLines(current));
+    current = [];
+  };
+  for (const line of source.replace(/\r\n/g, '\n').split('\n')) {
+    if (line.trim().startsWith('```')) {
+      if (code === null) {
+        flush();
+        code = [];
+      } else {
+        blocks.push({ kind: 'code', text: code.join('\n') });
+        code = null;
+      }
+    } else if (code !== null) code.push(line);
+    else if (line.trim() === '') flush();
+    else current.push(line);
   }
+  if (code !== null) blocks.push({ kind: 'code', text: code.join('\n') });
+  flush();
   return blocks;
 }
 
@@ -62,9 +94,11 @@ function Inlines({ source, color = colors.textSecondary }: { source: string; col
           key={i}
           color={part.bold ? colors.text : part.href ? colors.accent : color}
           style={{
-            fontFamily: part.bold ? fonts.bodyMedium : undefined,
+            fontFamily: part.code ? fonts.mono : part.bold ? fonts.bodyMedium : undefined,
             fontStyle: part.italic ? 'italic' : undefined,
-            textDecorationLine: part.href ? 'underline' : undefined,
+            textDecorationLine: part.href ? 'underline' : part.strike ? 'line-through' : undefined,
+            backgroundColor: part.code ? colors.background : undefined,
+            fontSize: part.code ? 14 : undefined,
           }}
           onPress={part.href ? () => Linking.openURL(part.href as string) : undefined}
         >
@@ -107,6 +141,31 @@ function Table({ head, rows }: { head: string[]; rows: string[][] }) {
   );
 }
 
+/** An uploaded or linked picture at its natural proportions, captioned with its alt text. */
+function MdImage({ src, alt }: { src: string; alt: string }) {
+  const [ratio, setRatio] = useState(16 / 10);
+  const uri = src.startsWith('/uploads') ? assetUrl(src) : src;
+  return (
+    <View style={{ gap: 10 }}>
+      <Image
+        source={{ uri }}
+        accessibilityLabel={alt}
+        contentFit="cover"
+        style={{ width: '100%', aspectRatio: ratio, borderRadius: 4, backgroundColor: colors.background }}
+        onLoad={(e) => {
+          const { width, height } = e.source;
+          if (width && height) setRatio(width / height);
+        }}
+      />
+      {alt ? (
+        <Txt variant="mono" color={colors.textSecondary}>
+          {alt}
+        </Txt>
+      ) : null}
+    </View>
+  );
+}
+
 export function Markdown({ source, gap = 24 }: { source: string; gap?: number }): ReactNode {
   const blocks = parseBlocks(source);
   return (
@@ -128,7 +187,7 @@ export function Markdown({ source, gap = 24 }: { source: string; gap?: number })
           case 'quote':
             return (
               <Txt key={i} variant="quote" style={{ fontFamily: fonts.quote }}>
-                {block.text}
+                <Inlines source={block.text} color={colors.text} />
               </Txt>
             );
           case 'ul':
@@ -147,6 +206,18 @@ export function Markdown({ source, gap = 24 }: { source: string; gap?: number })
             );
           case 'table':
             return <Table key={i} head={block.head} rows={block.rows} />;
+          case 'image':
+            return <MdImage key={i} src={block.src} alt={block.alt} />;
+          case 'hr':
+            return <View key={i} style={{ height: 1, backgroundColor: colors.borders }} />;
+          case 'code':
+            return (
+              <ScrollView key={i} horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: colors.darkSection, borderRadius: 8 }} contentContainerStyle={{ padding: 16 }}>
+                <Txt variant="monoBody" color="#f4f1ea">
+                  {block.text}
+                </Txt>
+              </ScrollView>
+            );
           default:
             return (
               <Txt key={i} color={colors.textSecondary}>

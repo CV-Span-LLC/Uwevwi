@@ -37,7 +37,7 @@ export default function ForgotPassword() {
       ) : (
         <>
           <Field label="Email address" value={email} onChangeText={setEmail} placeholder="you@uwevwistudio.org" keyboardType="email-address" onSubmitEditing={submit} error={error ?? undefined} />
-          <Btn label="Send reset link" iconRight="arrow-right" onPress={submit} loading={busy} style={{ height: 52 }} />
+          <Btn label="Send reset link" iconRight="arrow-right" onPress={submit} loading={busy} style={{ height: 44 }} />
         </>
       )}
       <TextLink href="/admin/login" label="Back to log in" />

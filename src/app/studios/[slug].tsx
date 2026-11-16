@@ -1,65 +1,69 @@
-import { Image } from 'expo-image';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
+import { Frame, FramedPhoto, SignalLine, TechButton } from '@/components/futuristic';
 import { SiteLayout } from '@/components/site-layout';
-import { Eyebrow, Photo, PrimaryButton, Section, Txt, gutterFor, useBreakpoint } from '@/components/ui';
+import { Eyebrow, Photo, Section, Txt, gutterFor, useBreakpoint } from '@/components/ui';
 import { assetUrl, publicApi, type Exhibition } from '@/lib/api';
 import { useRemote } from '@/lib/use-remote';
 import { colors, layout } from '@/theme';
 
-const ARROW = require('../../../assets/figma/arrow-left.svg');
-
 const src = (path: string | null | undefined) => ({ uri: assetUrl(path) as string });
+const upper = { textTransform: 'uppercase' } as const;
 
 function Hero({ exhibition }: { exhibition: Exhibition }) {
   const { isDesktop, isMobile } = useBreakpoint();
   const [edition, ...rest] = exhibition.edition.split('·').map((p) => p.trim());
+  const chips = [edition, ...rest].filter(Boolean);
   return (
-    <Section paddingTop={100} paddingBottom={80} innerStyle={{ gap: 24 }}>
-      <Link href="/studios" asChild>
-        <Pressable accessibilityRole="link" style={{ flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'flex-start', paddingVertical: 20 }}>
-          <Image source={ARROW} style={{ width: 24, height: 24, transform: [{ scaleX: -1 }] }} contentFit="contain" />
-          <Txt variant="nav">Back to Studios</Txt>
-        </Pressable>
-      </Link>
-      <View style={{ flexDirection: isDesktop ? 'row' : 'column', alignItems: isDesktop ? 'center' : 'stretch', justifyContent: 'space-between', gap: 40 }}>
-        <View style={{ width: isDesktop ? 448 : '100%', gap: 24, paddingTop: isDesktop ? 54 : 0 }}>
-          <Eyebrow>{(exhibition.series || exhibition.title).toUpperCase()}</Eyebrow>
-          <Txt variant="hero">{exhibition.title}</Txt>
-          {edition ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <Txt variant="large" color={colors.textSecondary}>
-                {edition}
-              </Txt>
-              {rest.length > 0 ? (
-                <>
-                  <View style={{ width: 4, height: 4, borderRadius: 100, backgroundColor: colors.textSecondary }} />
-                  <Txt variant="large" color={colors.textSecondary}>
-                    {rest.join(' · ').toUpperCase()}
+    <Frame background={colors.background}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.borders }}>
+        <Link href="/studios" asChild>
+          <Pressable accessibilityRole="link">
+            <Txt variant="mono" color={colors.accent}>
+              ← BACK TO STUDIOS
+            </Txt>
+          </Pressable>
+        </Link>
+        <Txt variant="mono" color={colors.textSecondary} style={upper}>
+          {`Studios / ${(exhibition.series || exhibition.title).slice(0, 28)}`}
+        </Txt>
+      </View>
+      <View style={{ flexDirection: isDesktop ? 'row' : 'column', alignItems: isDesktop ? 'center' : 'stretch', gap: isDesktop ? 64 : 32, paddingVertical: isMobile ? 32 : 52 }}>
+        {exhibition.flyer ? (
+          <View style={{ width: isDesktop ? 340 : '100%', paddingHorizontal: isDesktop ? 0 : 9 }}>
+            <FramedPhoto source={src(exhibition.flyer)} contentFit="contain" position="top" height={isDesktop ? 440 : isMobile ? 400 : 520} />
+          </View>
+        ) : null}
+        <View style={{ flex: isDesktop ? 1 : undefined, gap: 26 }}>
+          <Eyebrow>{exhibition.series || exhibition.title}</Eyebrow>
+          <Txt variant={exhibition.title.length > 40 ? 'h2' : 'h1'}>{exhibition.title}</Txt>
+          {chips.length ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {chips.map((c) => (
+                <View key={c} style={{ borderWidth: 1, borderColor: colors.borders, backgroundColor: colors.white, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 2 }}>
+                  <Txt variant="mono" color={colors.text} style={upper}>
+                    {c}
                   </Txt>
-                </>
-              ) : null}
+                </View>
+              ))}
             </View>
           ) : null}
-          <Txt>{exhibition.intro}</Txt>
-          <View style={{ gap: 8 }}>
-            <Txt variant="small" color={colors.textSecondary}>
+          <Txt variant="monoBody" color={colors.textSecondary} style={{ maxWidth: 520 }}>
+            {`/ ${exhibition.intro}`}
+          </Txt>
+          <View style={{ gap: 6, borderLeftWidth: 2, borderLeftColor: colors.accent, paddingLeft: 14 }}>
+            <Txt variant="mono" color={colors.textSecondary}>
               {exhibition.dateLabel}
             </Txt>
-            <Txt variant="small" color={colors.textSecondary}>
+            <Txt variant="mono" color={colors.textSecondary}>
               {exhibition.location}
             </Txt>
           </View>
         </View>
-        {exhibition.flyer ? (
-          <View style={{ width: isDesktop ? 661 : '100%', height: isDesktop ? 816 : isMobile ? 440 : 640 }}>
-            <Photo source={src(exhibition.flyer)} contentFit="contain" position={isDesktop ? 'top' : 'center'} />
-          </View>
-        ) : null}
       </View>
-    </Section>
+    </Frame>
   );
 }
 
@@ -70,7 +74,7 @@ function Experience({ exhibition }: { exhibition: Exhibition }) {
   const cardH = isMobile ? 315 : 441;
   if (exhibition.gallery.length === 0) return null;
   return (
-    <View style={{ backgroundColor: colors.background, paddingVertical: isMobile ? 48 : 80, gap: 24 }}>
+    <View style={{ backgroundColor: colors.white, paddingVertical: isMobile ? 56 : 100, gap: 40 }}>
       <View
         style={{
           width: '100%',
@@ -83,20 +87,25 @@ function Experience({ exhibition }: { exhibition: Exhibition }) {
           gap: 24,
         }}
       >
-        <View style={{ width: isDesktop ? 583 : '100%', gap: 24 }}>
-          <Eyebrow>EXHIBITION EXPERIENCE</Eyebrow>
-          <Txt variant="h1">{exhibition.galleryHeading || exhibition.title}</Txt>
+        <View style={{ maxWidth: 640, gap: 20 }}>
+          <Eyebrow>Exhibition experience</Eyebrow>
+          <Txt variant="h2">{exhibition.galleryHeading || exhibition.title}</Txt>
         </View>
         {exhibition.galleryText ? (
-          <View style={{ width: isDesktop ? 429 : '100%' }}>
-            <Txt color={colors.textSecondary}>{exhibition.galleryText}</Txt>
-          </View>
+          <Txt variant="monoBody" color={colors.textSecondary} style={{ maxWidth: 440 }}>
+            {`/ ${exhibition.galleryText}`}
+          </Txt>
         ) : null}
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: gutter }}>
-        {exhibition.gallery.map((path) => (
-          <View key={path} style={{ width: cardW, height: cardH, borderRadius: 12, overflow: 'hidden' }}>
-            <Photo source={src(path)} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: gutter }}>
+        {exhibition.gallery.map((path, i) => (
+          <View key={path} style={{ width: cardW, gap: 10 }}>
+            <View style={{ height: cardH, backgroundColor: colors.background, padding: 6 }}>
+              <Photo source={src(path)} />
+            </View>
+            <Txt variant="mono" color={colors.textSecondary}>
+              {`/${String(i + 1).padStart(2, '0')}`}
+            </Txt>
           </View>
         ))}
       </ScrollView>
@@ -112,16 +121,20 @@ function Artists({ exhibition }: { exhibition: Exhibition }) {
   const artist = artists[Math.min(selected, artists.length - 1)];
   const bio = artist.bio.split(/\n{2,}/).filter(Boolean);
   return (
-    <Section paddingY={80} innerStyle={{ gap: 34 }}>
-      <View style={{ maxWidth: 644, gap: 24 }}>
-        <Eyebrow>MEET THE ARTISTS</Eyebrow>
-        <Txt variant="h1">{artists.length === 1 ? 'One artist. One perspective.' : `${artists.length} artists. ${artists.length} perspectives.`}</Txt>
+    <Section background={colors.background} paddingY={110} innerStyle={{ gap: 48 }}>
+      <View style={{ maxWidth: 680, gap: 20 }}>
+        <Eyebrow>Meet the artists</Eyebrow>
+        <Txt variant="h2">{artists.length === 1 ? 'One artist. One perspective.' : `${artists.length} artists. ${artists.length} perspectives.`}</Txt>
       </View>
-      <View style={{ flexDirection: isDesktop ? 'row' : 'column', alignItems: isDesktop ? 'flex-start' : 'stretch', justifyContent: 'space-between', gap: 32 }}>
-        <View style={{ width: isDesktop ? 308 : '100%', height: isMobile ? 360 : 391, borderRadius: 8, overflow: 'hidden', backgroundColor: colors.background }}>
-          {artist.photo ? <Photo source={src(artist.photo)} position="top" /> : null}
+      <View style={{ flexDirection: isDesktop ? 'row' : 'column', alignItems: isDesktop ? 'flex-start' : 'stretch', gap: 40 }}>
+        <View style={{ width: isDesktop ? 320 : '100%', paddingHorizontal: isDesktop ? 0 : 9 }}>
+          {artist.photo ? (
+            <FramedPhoto source={src(artist.photo)} position="top" height={isMobile ? 360 : 400} />
+          ) : (
+            <View style={{ height: isMobile ? 360 : 400, backgroundColor: colors.white }} />
+          )}
         </View>
-        <View style={{ width: isDesktop ? 374 : '100%', gap: 16 }}>
+        <View style={{ flex: isDesktop ? 1 : undefined, gap: 16 }}>
           <Txt variant="h2">{artist.name}</Txt>
           {bio.map((p) => (
             <Txt key={p} color={colors.textSecondary}>
@@ -130,16 +143,16 @@ function Artists({ exhibition }: { exhibition: Exhibition }) {
           ))}
         </View>
         {artist.works.length > 0 ? (
-          <View style={{ width: isDesktop ? 438 : '100%', gap: 8 }}>
+          <View style={{ width: isDesktop ? 400 : '100%', gap: 10 }}>
             {artist.works.slice(0, 2).map((work) => (
-              <View key={work} style={{ width: '100%', height: isMobile ? 240 : 321, borderRadius: 8, overflow: 'hidden' }}>
+              <View key={work} style={{ height: isMobile ? 240 : 300, backgroundColor: colors.white, padding: 6 }}>
                 <Photo source={src(work)} />
               </View>
             ))}
           </View>
         ) : null}
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
         {artists.map((a, i) => {
           const active = i === selected;
           return (
@@ -149,12 +162,12 @@ function Artists({ exhibition }: { exhibition: Exhibition }) {
               accessibilityLabel={`Show ${a.name}`}
               accessibilityState={{ selected: active }}
               onPress={() => setSelected(i)}
-              style={{ width: isMobile ? 120 : 142, gap: 14 }}
+              style={{ width: isMobile ? 120 : 142, gap: 10 }}
             >
-              <View style={{ height: 240, borderRadius: 8, overflow: 'hidden', borderWidth: active ? 0.58 : 0, borderColor: colors.accent, backgroundColor: colors.background }}>
+              <View style={{ height: 200, padding: 4, backgroundColor: colors.white, borderWidth: 1, borderColor: active ? colors.accent : colors.borders, opacity: active ? 1 : 0.75 }}>
                 {a.photo ? <Photo source={src(a.photo)} /> : null}
               </View>
-              <Txt variant="overline" color={active ? colors.accent : colors.textSecondary}>
+              <Txt variant="mono" color={active ? colors.accent : colors.textSecondary} numberOfLines={2}>
                 {a.name}
               </Txt>
             </Pressable>
@@ -171,40 +184,38 @@ function CuratorialNote({ exhibition }: { exhibition: Exhibition }) {
   if (!exhibition.noteHeading) return null;
   const background = exhibition.gallery[3] ?? exhibition.gallery[0] ?? exhibition.flyer;
   return (
-    <View style={{ minHeight: isMobile ? 480 : 436, justifyContent: 'center', backgroundColor: colors.darkSection }}>
+    <View style={{ minHeight: isMobile ? 480 : 480, justifyContent: 'center', backgroundColor: colors.darkSection, overflow: 'hidden' }}>
       {background ? (
         <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}>
           <Photo source={src(background)} />
         </View>
       ) : null}
-      <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(51,51,51,0.45)' }} />
-      <View
-        style={{
-          width: '100%',
-          maxWidth: layout.maxWidth,
-          alignSelf: 'center',
-          flexDirection: isDesktop ? 'row' : 'column',
-          alignItems: isDesktop ? 'center' : 'flex-start',
-          gap: isDesktop ? 125 : 24,
-          paddingHorizontal: gutter,
-          paddingVertical: isMobile ? 48 : 0,
-        }}
-      >
-        <View style={{ width: isDesktop ? 676 : '100%', gap: 24 }}>
-          <Txt variant="large" color={colors.white}>
-            CURATORIAL NOTE
-          </Txt>
-          <Txt variant="h1" color={colors.white}>
-            {exhibition.noteHeading}
-          </Txt>
-        </View>
-        {exhibition.noteText ? (
-          <View style={{ width: isDesktop ? 382 : '100%' }}>
-            <Txt variant="large" color={colors.white}>
-              {exhibition.noteText}
-            </Txt>
+      <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(23,22,20,0.78)' }} />
+      <View style={{ width: '100%', maxWidth: layout.maxWidth, alignSelf: 'center', paddingHorizontal: gutter }}>
+        <View style={{ position: 'relative' }}>
+          <SignalLine />
+          <View
+            style={{
+              flexDirection: isDesktop ? 'row' : 'column',
+              alignItems: isDesktop ? 'center' : 'flex-start',
+              gap: isDesktop ? 100 : 28,
+              paddingLeft: isMobile ? 28 : 84,
+              paddingVertical: isMobile ? 56 : 96,
+            }}
+          >
+            <View style={{ flex: isDesktop ? 1 : undefined, gap: 24 }}>
+              <Eyebrow color={colors.signal}>Curatorial note</Eyebrow>
+              <Txt variant="h1" color={colors.white}>
+                {exhibition.noteHeading}
+              </Txt>
+            </View>
+            {exhibition.noteText ? (
+              <Txt variant="monoBody" color="rgba(255,255,255,0.8)" style={{ flex: isDesktop ? 1 : undefined, maxWidth: 440 }}>
+                {`/ ${exhibition.noteText}`}
+              </Txt>
+            ) : null}
           </View>
-        ) : null}
+        </View>
       </View>
     </View>
   );
@@ -225,9 +236,10 @@ export default function ExhibitionPage() {
         </>
       ) : (
         <Section background={colors.background} paddingY={140} innerStyle={{ gap: 24 }}>
+          <Eyebrow>{loading ? 'Loading' : 'Exhibition'}</Eyebrow>
           <Txt variant="h1">{loading ? 'Loading the exhibition…' : error ?? 'We could not find that exhibition.'}</Txt>
-          {!loading ? <PrimaryButton label="Try again" onPress={reload} /> : null}
-          {!loading ? <PrimaryButton label="Back to Studios" href="/studios" /> : null}
+          {!loading ? <TechButton label="Try again" onPress={reload} tone="accent" /> : null}
+          {!loading ? <TechButton label="Back to Studios" href="/studios" tone="ink" /> : null}
         </Section>
       )}
     </SiteLayout>

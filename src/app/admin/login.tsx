@@ -32,8 +32,8 @@ export default function Login() {
   };
 
   return (
-    <AuthScreen title="Welcome Back">
-      <Field label="User Name" value={email} onChangeText={setEmail} placeholder="you@uwevwistudio.org" keyboardType="email-address" onSubmitEditing={submit} />
+    <AuthScreen title="Welcome back" subtitle="Sign in to manage the Uwevwi website.">
+      <Field label="Email" value={email} onChangeText={setEmail} placeholder="you@uwevwistudio.org" keyboardType="email-address" onSubmitEditing={submit} />
       <Field
         label="Password"
         value={password}
@@ -48,27 +48,23 @@ export default function Login() {
         }
       />
       <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: remember }} onPress={() => setRemember((v) => !v)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <View style={{ width: 22, height: 22, borderRadius: 5, backgroundColor: remember ? A.accent : A.white, borderWidth: 1, borderColor: A.accent, alignItems: 'center', justifyContent: 'center' }}>
-          {remember ? <Icon name="check" size={14} color={A.white} strokeWidth={2.4} /> : null}
+        <View style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: remember ? A.accent : A.white, borderWidth: 1, borderColor: remember ? A.accent : A.lineStrong, alignItems: 'center', justifyContent: 'center' }}>
+          {remember ? <Icon name="check" size={13} color={A.white} strokeWidth={2.6} /> : null}
         </View>
-        <AText kind="small" color={A.accent}>
-          Remember me on this computer
+        <AText kind="small" color={A.muted}>
+          Keep me signed in on this computer
         </AText>
       </Pressable>
       {error ? (
-        <AText kind="small" color={A.accent}>
-          {error}
-        </AText>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', backgroundColor: A.accentSoft, borderRadius: 8, padding: 10 }}>
+          <Icon name="alert" size={15} color={A.accent} />
+          <AText kind="small" color={A.accent} style={{ flex: 1 }}>
+            {error}
+          </AText>
+        </View>
       ) : null}
-      <Btn label="Log In" iconRight="arrow-right" onPress={submit} loading={busy} style={{ height: 52 }} />
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <View style={{ flex: 1, height: 1, backgroundColor: A.line }} />
-        <AText kind="small" color={A.muted}>
-          OR
-        </AText>
-        <View style={{ flex: 1, height: 1, backgroundColor: A.line }} />
-      </View>
-      <TextLink href="/admin/forgot-password" label="Forgot Password?" />
+      <Btn label="Sign in" iconRight="arrow-right" onPress={submit} loading={busy} style={{ height: 44 }} />
+      <TextLink href="/admin/forgot-password" label="Forgot your password?" />
     </AuthScreen>
   );
 }

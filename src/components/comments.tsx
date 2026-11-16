@@ -65,7 +65,7 @@ function Field({
         backgroundColor: 'rgba(245,242,236,0.45)',
         borderWidth: 1,
         borderColor: error ? colors.accent : colors.borders,
-        borderRadius: 8,
+        borderRadius: 2,
         paddingHorizontal: multiline ? 40 : 24,
         paddingVertical: multiline ? 24 : 0,
       }}
@@ -108,7 +108,7 @@ function CommentView({ comment, onLike, onReply }: { comment: Comment; onLike: (
               {comment.name}
             </Txt>
             {comment.isAuthor ? (
-              <View style={{ backgroundColor: colors.accent, height: 24, borderRadius: 8, paddingHorizontal: 8, justifyContent: 'center', alignSelf: 'center' }}>
+              <View style={{ backgroundColor: colors.accent, height: 24, borderRadius: 2, paddingHorizontal: 8, justifyContent: 'center', alignSelf: 'center' }}>
                 <Txt variant="small" color={colors.white}>
                   Author
                 </Txt>

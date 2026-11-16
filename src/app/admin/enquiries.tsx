@@ -4,7 +4,7 @@ import { Linking, Pressable, View, useWindowDimensions } from 'react-native';
 import { dateTime } from '@/admin/format';
 import { Icon } from '@/admin/icons';
 import { AdminShell, PageHeader } from '@/admin/shell';
-import { A, AText, Badge, Btn, Card, ConfirmDialog, Empty, Field, Loading, Tabs, errorText, useToast } from '@/admin/ui';
+import { A, AText, Avatar, Badge, Btn, Card, ConfirmDialog, Empty, Loading, SearchField, Tabs, errorText, useToast } from '@/admin/ui';
 import { adminApi, timeAgo } from '@/lib/api';
 import { useRemote } from '@/lib/use-remote';
 
@@ -18,39 +18,49 @@ function replyLink(e: Enquiry): string {
   return `mailto:${e.email}?subject=${subject}&body=${body}`;
 }
 
-function Detail({ enquiry, onToggleRead, onDelete }: { enquiry: Enquiry; onToggleRead: () => void; onDelete: () => void }) {
+function Detail({ enquiry, onToggleRead, onDelete, onBack }: { enquiry: Enquiry; onToggleRead: () => void; onDelete: () => void; onBack?: () => void }) {
   return (
-    <Card style={{ gap: 14 }}>
-      <View style={{ gap: 4 }}>
-        <AText kind="heading">{enquiry.name}</AText>
-        <Pressable accessibilityRole="link" onPress={() => Linking.openURL(`mailto:${enquiry.email}`)} style={{ alignSelf: 'flex-start' }}>
-          <AText kind="small" color={A.accent}>
-            {enquiry.email}
+    <View style={{ gap: 20, padding: 24 }}>
+      {onBack ? <Btn label="All enquiries" kind="ghost" icon="arrow-left" small onPress={onBack} style={{ alignSelf: 'flex-start', marginLeft: -8 }} /> : null}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <Avatar name={enquiry.name} size={48} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <AText kind="heading" style={{ fontSize: 22 }}>
+            {enquiry.name}
           </AText>
-        </Pressable>
+          <Pressable accessibilityRole="link" onPress={() => Linking.openURL(`mailto:${enquiry.email}`)} style={{ alignSelf: 'flex-start' }}>
+            <AText kind="small" color={A.accent}>
+              {enquiry.email}
+            </AText>
+          </Pressable>
+        </View>
+      </View>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+        <Badge tone="blue" label={enquiry.topic} dot={false} />
         {enquiry.organisation ? (
-          <AText kind="small" color={A.muted}>
-            {enquiry.organisation}
-          </AText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Icon name="user" size={13} color={A.faint} />
+            <AText kind="small" color={A.muted}>
+              {enquiry.organisation}
+            </AText>
+          </View>
         ) : null}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Icon name="clock" size={13} color={A.faint} />
+          <AText kind="small" color={A.muted}>
+            {dateTime(enquiry.createdAt)}
+          </AText>
+        </View>
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <Badge tone="blue" label={enquiry.topic} />
-        <AText kind="tiny" color={A.muted}>
-          {dateTime(enquiry.createdAt)}
-        </AText>
-      </View>
-      <View style={{ backgroundColor: A.field, borderRadius: 8, padding: 14 }}>
-        <AText color={A.text} style={{ lineHeight: 22 }}>
-          {enquiry.message}
-        </AText>
+      <View style={{ backgroundColor: A.field, borderRadius: 10, padding: 18, borderLeftWidth: 3, borderLeftColor: A.accent }}>
+        <AText style={{ lineHeight: 24 }}>{enquiry.message}</AText>
       </View>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
         <Btn label="Reply by email" icon="mail" onPress={() => Linking.openURL(replyLink(enquiry))} />
         <Btn label={enquiry.read ? 'Mark as unread' : 'Mark as read'} kind="secondary" onPress={onToggleRead} />
-        <Btn label="Delete" kind="ghost" icon="trash" onPress={onDelete} style={{ borderColor: 'transparent' }} />
+        <Btn label="Delete" kind="danger" icon="trash" onPress={onDelete} />
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -63,14 +73,14 @@ export default function EnquiriesPage() {
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [toDelete, setToDelete] = useState<Enquiry | null>(null);
-  const stacked = width < 1000;
+  const split = width >= 1000;
 
   const items = useMemo(() => (data ?? []).map((e) => ({ ...e, read: override[e.id] ?? e.read })), [data, override]);
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((e) => (tab === 'all' || (tab === 'unread' ? !e.read : e.read)) && (!q || [e.name, e.email, e.organisation, e.topic, e.message].some((f) => f.toLowerCase().includes(q))));
   }, [items, tab, query]);
-  const selected = rows.find((e) => e.id === selectedId);
+  const selected = rows.find((e) => e.id === selectedId) ?? (split ? rows[0] : undefined);
 
   const setRead = async (e: Enquiry, read: boolean) => {
     setOverride((o) => ({ ...o, [e.id]: read }));
@@ -100,64 +110,87 @@ export default function EnquiriesPage() {
     }
   };
 
+  const unread = items.filter((e) => !e.read).length;
+  const showDetailOnly = !split && !!selected;
+
   return (
-    <AdminShell title="Enquiries" maxWidth={1100}>
-      <PageHeader
-        title="Enquiries"
-        subtitle="Messages sent through the contact form on your website."
-        actions={
-          <View style={{ width: 240 }}>
-            <Field value={query} onChangeText={setQuery} placeholder="Search enquiries..." tone="white" trailing={<Icon name="search" size={16} color={A.muted} />} />
-          </View>
-        }
-      />
+    <AdminShell title="Enquiries" maxWidth={1240}>
+      <PageHeader title="Enquiries" subtitle="Messages sent through the contact form on your website." />
       {!data ? (
         <Loading error={error} onRetry={reload} text={loading ? 'Loading enquiries…' : undefined} />
+      ) : items.length === 0 ? (
+        <Card>
+          <Empty icon="inbox" text="No enquiries yet. Messages from the contact form will appear here." />
+        </Card>
       ) : (
-        <View style={{ gap: 14 }}>
-          <Tabs
-            active={tab}
-            onChange={setTab}
-            tabs={[
-              { key: 'all', label: 'All', count: items.length },
-              { key: 'unread', label: 'Unread', count: items.filter((e) => !e.read).length },
-              { key: 'read', label: 'Read', count: items.filter((e) => e.read).length },
-            ]}
-          />
-          {rows.length === 0 ? (
-            <Empty text={items.length === 0 ? 'No enquiries yet. Messages from the contact form will appear here.' : 'No enquiries match.'} />
-          ) : (
-            <View style={{ flexDirection: stacked ? 'column' : 'row', gap: 16, alignItems: 'flex-start' }}>
-              <View style={{ width: stacked ? '100%' : 400, gap: 8 }}>
-                {rows.map((e) => {
-                  const active = e.id === selected?.id;
-                  return (
-                    <Pressable key={e.id} accessibilityRole="button" accessibilityState={{ selected: active }} onPress={() => open(e)} style={{ backgroundColor: A.white, borderRadius: 10, padding: 14, gap: 6, borderWidth: 1, borderColor: active ? A.accent : 'transparent' }}>
+        <Card style={{ padding: 0, overflow: 'hidden', flexDirection: split ? 'row' : 'column', minHeight: 560 }}>
+          {!showDetailOnly ? (
+            <View style={{ width: split ? 400 : '100%', borderRightWidth: split ? 1 : 0, borderRightColor: A.line }}>
+              <View style={{ gap: 12, padding: 16, borderBottomWidth: 1, borderBottomColor: A.line }}>
+                <Tabs
+                  active={tab}
+                  onChange={setTab}
+                  tabs={[
+                    { key: 'all', label: 'All', count: items.length },
+                    { key: 'unread', label: 'Unread', count: unread },
+                    { key: 'read', label: 'Read', count: items.length - unread },
+                  ]}
+                />
+                <SearchField value={query} onChangeText={setQuery} placeholder="Search enquiries…" width="100%" />
+              </View>
+              {rows.length === 0 ? <Empty text="No enquiries match." /> : null}
+              {rows.map((e) => {
+                const active = e.id === selected?.id && split;
+                return (
+                  <Pressable
+                    key={e.id}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    onPress={() => open(e)}
+                    style={({ hovered }: { hovered?: boolean }) => ({
+                      flexDirection: 'row',
+                      gap: 12,
+                      padding: 16,
+                      borderBottomWidth: 1,
+                      borderBottomColor: A.line,
+                      borderLeftWidth: 3,
+                      borderLeftColor: active ? A.accent : 'transparent',
+                      backgroundColor: active ? A.accentSoft : hovered ? '#fbfaf8' : A.white,
+                    })}
+                  >
+                    <Avatar name={e.name} size={38} tone={e.read ? 'ink' : 'accent'} />
+                    <View style={{ flex: 1, gap: 3 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        {!e.read ? <View accessibilityLabel="Unread" style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: A.accent }} /> : null}
-                        <AText kind="label" style={{ flex: 1 }} numberOfLines={1}>
+                        {!e.read ? <View accessibilityLabel="Unread" style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: A.signal }} /> : null}
+                        <AText kind="label" style={{ flex: 1, fontFamily: e.read ? undefined : undefined }} numberOfLines={1}>
                           {e.name}
                         </AText>
                         <AText kind="tiny" color={A.muted}>
                           {timeAgo(e.createdAt)}
                         </AText>
                       </View>
-                      <AText kind="small" color={A.accent}>
+                      <AText kind="tiny" color={A.accent}>
                         {e.topic}
                       </AText>
                       <AText kind="small" color={A.muted} numberOfLines={2}>
                         {e.message}
                       </AText>
-                    </Pressable>
-                  );
-                })}
-              </View>
-              <View style={{ flex: 1, width: stacked ? '100%' : undefined }}>
-                {selected ? <Detail enquiry={selected} onToggleRead={() => setRead(selected, !selected.read)} onDelete={() => setToDelete(selected)} /> : <Empty text="Select an enquiry to read it." />}
-              </View>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
-          )}
-        </View>
+          ) : null}
+          {split || showDetailOnly ? (
+            <View style={{ flex: 1 }}>
+              {selected ? (
+                <Detail enquiry={selected} onToggleRead={() => setRead(selected, !selected.read)} onDelete={() => setToDelete(selected)} onBack={split ? undefined : () => setSelectedId(null)} />
+              ) : (
+                <Empty icon="mail" text="Select an enquiry to read it." />
+              )}
+            </View>
+          ) : null}
+        </Card>
       )}
       <ConfirmDialog visible={!!toDelete} title="Delete this enquiry?" message="It will be removed permanently." confirmLabel="Delete" danger onConfirm={confirmDelete} onCancel={() => setToDelete(null)} />
     </AdminShell>
